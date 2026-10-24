@@ -218,6 +218,161 @@
       background: rgba(255,107,107,0.08); border: 1px solid var(--danger);
       border-radius: 10px; padding: 16px 20px; color: var(--danger); font-size: 13px; line-height: 1.6;
     }
+
+    /* ── Batch Queue ── */
+    .batch-card {
+      margin-top: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .batch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .batch-meta {
+      font-size: 12px;
+      color: var(--accent2);
+      font-weight: 600;
+    }
+    .batch-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .batch-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .batch-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    .batch-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      transition: all .2s;
+    }
+    .batch-item:hover {
+      border-color: rgba(108, 99, 255, 0.3);
+    }
+    .batch-item.processing {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.08);
+    }
+    .batch-item.done {
+      border-color: var(--accent2);
+      background: rgba(78, 205, 196, 0.05);
+    }
+    .batch-item.error {
+      border-color: var(--danger);
+      background: rgba(255, 107, 107, 0.05);
+    }
+    .batch-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .batch-item-title {
+      font-weight: 600;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .batch-item-size {
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .batch-item-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+    .badge-status {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+    .badge-waiting {
+      background: rgba(122, 134, 163, 0.15);
+      color: var(--text-muted);
+    }
+    .badge-processing {
+      background: rgba(108, 99, 255, 0.2);
+      color: var(--accent);
+    }
+    .badge-done {
+      background: rgba(78, 205, 196, 0.2);
+      color: var(--accent2);
+    }
+    .badge-error {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--danger);
+    }
+    .btn-item-del {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all .2s;
+    }
+    .btn-item-del:hover {
+      color: var(--danger);
+      background: rgba(255, 107, 107, 0.1);
+    }
+    .btn-item-dl {
+      background: rgba(78, 205, 196, 0.15);
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      transition: all .2s;
+    }
+    .btn-item-dl:hover {
+      background: var(--accent2);
+      color: #000;
+    }
+    .batch-clear-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .batch-clear-btn:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -238,17 +393,25 @@
   <!-- ══════════ TAB 1: Watermark & TikTok Resize ══════════ -->
   <div class="tab-panel active" id="tab-wm">
     <div class="grid">
-      <!-- Video Upload -->
+      <!-- Video Upload (Multi-file batch) -->
       <div class="card">
         <div class="card-title">
-          <div class="card-title-left"><span class="dot"></span> Video gốc (Reup)</div>
+          <div class="card-title-left"><span class="dot"></span> Video gốc (Hỗ trợ chọn nhiều video)</div>
         </div>
         <div class="drop-zone" id="wm-video-drop">
-          <input type="file" id="wm-video-input" accept="video/*" />
-          <span class="drop-icon">🎥</span>
-          <div class="drop-label">Kéo thả hoặc click chọn video</div>
-          <div class="drop-hint">MP4, MOV, TikTok...</div>
-          <div class="file-name" id="wm-video-name"></div>
+          <input type="file" id="wm-video-input" accept="video/*" multiple />
+          <span class="drop-icon">🎬</span>
+          <div class="drop-label">Kéo thả nhiều video hoặc click chọn</div>
+          <div class="drop-hint">Chọn 1 hoặc nhiều video cùng lúc (MP4, MOV, WebM...)</div>
+        </div>
+
+        <!-- Batch Queue Container -->
+        <div class="batch-card" id="wm-batch-card" style="display:none;">
+          <div class="batch-header">
+            <span>Hàng đợi: <span class="batch-meta" id="wm-batch-count">0 video</span></span>
+            <button type="button" class="batch-clear-btn" onclick="clearBatchVideos()">🗑️ Xóa hết</button>
+          </div>
+          <div class="batch-list" id="wm-batch-list"></div>
         </div>
       </div>
 
@@ -458,15 +621,15 @@
     </div>
 
     <div class="process-wrap">
-      <button class="btn-process" id="wm-btn" disabled>⚡ Bắt đầu xử lý video</button>
+      <button class="btn-process" id="wm-btn" disabled>⚡ Bắt đầu xử lý hàng loạt</button>
     </div>
 
     <!-- Progress Watermark -->
     <div id="progress-wm">
       <div class="progress-card">
-        <div class="progress-title">⏳ Đang xử lý video...</div>
+        <div class="progress-title" id="wm-progress-title">⏳ Đang xử lý video...</div>
         <div class="progress-bar-bg"><div class="progress-bar-fill" id="wm-bar"></div></div>
-        <div class="progress-status" id="wm-status">Đang upload và tạo lớp chữ "Chốt Đơn Ăn Mì"...</div>
+        <div class="progress-status" id="wm-status">Đang chuẩn bị hàng đợi...</div>
       </div>
     </div>
 
@@ -474,10 +637,16 @@
     <div class="result-section" id="wm-result">
       <div class="result-card">
         <div class="result-icon">🎉</div>
-        <div class="result-title">Xử lý hoàn tất!</div>
-        <div class="result-sub" id="wm-result-sub">Video đã chuẩn format TikTok và chèn chữ / logo thành công.</div>
-        <a class="btn-download" id="wm-download" href="#" download>⬇️ Tải xuống video</a>
-        <button class="btn-reset" onclick="resetPanel('wm')">🔄 Xử lý video khác</button>
+        <div class="result-title" id="wm-result-title">Hoàn tất xử lý video hàng loạt!</div>
+        <div class="result-sub" id="wm-result-sub">Tất cả video đã được chuẩn format TikTok, chèn chữ animation & mix nhạc nền.</div>
+        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+          <a class="btn-download" id="wm-zip-btn" href="#" download style="background:linear-gradient(135deg, var(--accent), #9b59b6); box-shadow: 0 6px 24px var(--accent-glow); display:none;">📦 Tải xuống tất cả (.ZIP)</a>
+          <button type="button" class="btn-download" id="wm-download-all-btn" style="display:none;" onclick="downloadAllIndividual()">⬇️ Tải lần lượt từng video</button>
+          <a class="btn-download" id="wm-download-single" href="#" download style="display:none;">⬇️ Tải xuống video</a>
+        </div>
+        <div>
+          <button class="btn-reset" onclick="resetPanel('wm')">🔄 Xử lý đợt video mới</button>
+        </div>
       </div>
     </div>
     <div class="error-section" id="wm-error"><div class="error-card" id="wm-err-msg"></div></div>
@@ -597,7 +766,121 @@ function setupDrop(dropId, inputId, nameId, checkFn) {
 
 // ── Watermark tab ──
 let wmPos = 'bottom-right';
-setupDrop('wm-video-drop', 'wm-video-input', 'wm-video-name', checkWmReady);
+let wmBatchQueue = [];
+let isProcessingBatch = false;
+
+const wmDrop = document.getElementById('wm-video-drop');
+const wmInput = document.getElementById('wm-video-input');
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function addBatchVideos(files) {
+  for (const file of files) {
+    if (!file.type.startsWith('video/') && !file.name.match(/\.(mp4|mov|avi|mkv|webm|m4v|flv)$/i)) {
+      continue;
+    }
+    if (!wmBatchQueue.some(item => item.file.name === file.name && item.file.size === file.size)) {
+      wmBatchQueue.push({
+        id: 'vid_' + Math.random().toString(36).substring(2, 9),
+        file: file,
+        status: 'waiting',
+        downloadUrl: null,
+        filename: null,
+        jobId: null,
+        error: null
+      });
+    }
+  }
+  renderBatchQueue();
+  checkWmReady();
+}
+
+function removeBatchItem(id) {
+  if (isProcessingBatch) return;
+  wmBatchQueue = wmBatchQueue.filter(item => item.id !== id);
+  renderBatchQueue();
+  checkWmReady();
+}
+
+function clearBatchVideos() {
+  if (isProcessingBatch) return;
+  wmBatchQueue = [];
+  if (wmInput) wmInput.value = '';
+  renderBatchQueue();
+  checkWmReady();
+}
+
+function renderBatchQueue() {
+  const card = document.getElementById('wm-batch-card');
+  const countEl = document.getElementById('wm-batch-count');
+  const listEl = document.getElementById('wm-batch-list');
+
+  if (wmBatchQueue.length === 0) {
+    card.style.display = 'none';
+    wmDrop.classList.remove('has-file');
+    return;
+  }
+
+  card.style.display = 'block';
+  wmDrop.classList.add('has-file');
+
+  const totalSize = wmBatchQueue.reduce((acc, it) => acc + it.file.size, 0);
+  countEl.textContent = `${wmBatchQueue.length} video (${formatBytes(totalSize)})`;
+
+  listEl.innerHTML = wmBatchQueue.map((item) => {
+    let statusHtml = '';
+    if (item.status === 'waiting') {
+      statusHtml = `<span class="badge-status badge-waiting">⏳ Chờ</span>`;
+    } else if (item.status === 'processing') {
+      statusHtml = `<span class="badge-status badge-processing">⚙️ Đang xử lý...</span>`;
+    } else if (item.status === 'done') {
+      statusHtml = `<span class="badge-status badge-done">✅ Xong</span> <a href="${item.downloadUrl}" download="${item.filename || 'video.mp4'}" class="btn-item-dl">⬇️ Tải</a>`;
+    } else if (item.status === 'error') {
+      statusHtml = `<span class="badge-status badge-error" title="${item.error || 'Lỗi'}">❌ Lỗi</span>`;
+    }
+
+    const delBtn = (!isProcessingBatch && item.status !== 'processing')
+      ? `<button type="button" class="btn-item-del" onclick="removeBatchItem('${item.id}')" title="Xóa video này">✕</button>`
+      : '';
+
+    return `
+      <div class="batch-item ${item.status}">
+        <div class="batch-item-left">
+          <span>🎬</span>
+          <div class="batch-item-title" title="${item.file.name}">${item.file.name}</div>
+          <span class="batch-item-size">${formatBytes(item.file.size)}</span>
+        </div>
+        <div class="batch-item-right">
+          ${statusHtml}
+          ${delBtn}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+wmInput.addEventListener('change', () => {
+  if (wmInput.files && wmInput.files.length > 0) {
+    addBatchVideos(Array.from(wmInput.files));
+    wmInput.value = '';
+  }
+});
+wmDrop.addEventListener('dragover', e => { e.preventDefault(); wmDrop.classList.add('dragover'); });
+wmDrop.addEventListener('dragleave', () => wmDrop.classList.remove('dragover'));
+wmDrop.addEventListener('drop', e => {
+  e.preventDefault();
+  wmDrop.classList.remove('dragover');
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    addBatchVideos(Array.from(e.dataTransfer.files));
+  }
+});
+
 setupDrop('wm-logo-drop', 'wm-logo-input', 'wm-logo-name', checkWmReady);
 
 // Audio setup
@@ -687,8 +970,16 @@ function toggleAnimSpeedControl() {
 toggleAnimSpeedControl();
 
 function checkWmReady() {
-  const hasVideo = !!document.getElementById('wm-video-input').files[0];
-  document.getElementById('wm-btn').disabled = !hasVideo;
+  const hasVideos = wmBatchQueue.length > 0;
+  const btn = document.getElementById('wm-btn');
+  btn.disabled = !hasVideos || isProcessingBatch;
+  if (hasVideos) {
+    btn.textContent = wmBatchQueue.length > 1
+      ? `⚡ Bắt đầu xử lý hàng loạt (${wmBatchQueue.length} video)`
+      : `⚡ Bắt đầu xử lý video`;
+  } else {
+    btn.textContent = `⚡ Bắt đầu xử lý hàng loạt`;
+  }
 }
 
 document.querySelectorAll('.pos-btn').forEach(btn => {
@@ -699,49 +990,167 @@ document.querySelectorAll('.pos-btn').forEach(btn => {
   });
 });
 
+function downloadAllIndividual() {
+  const doneItems = wmBatchQueue.filter(it => it.status === 'done' && it.downloadUrl);
+  doneItems.forEach((item, index) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = item.downloadUrl;
+      a.download = item.filename || `video_${index + 1}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }, index * 400);
+  });
+}
+
 document.getElementById('wm-btn').addEventListener('click', async () => {
-  const fd = new FormData();
-  fd.append('video', document.getElementById('wm-video-input').files[0]);
+  if (wmBatchQueue.length === 0 || isProcessingBatch) return;
 
+  isProcessingBatch = true;
+  document.getElementById('wm-btn').disabled = true;
+  document.getElementById('progress-wm').style.display = 'block';
+  document.getElementById('wm-result').style.display = 'none';
+  document.getElementById('wm-error').style.display = 'none';
+
+  const bar = document.getElementById('wm-bar');
+  const statusEl = document.getElementById('wm-status');
+  const titleEl = document.getElementById('wm-progress-title');
+
+  // Shared settings across all videos
   const logoFile = document.getElementById('wm-logo-input').files[0];
-  if (logoFile) {
-    fd.append('logo', logoFile);
-  }
-
-  // Audio & BGM parameters
   const audioFile = document.getElementById('wm-audio-input').files[0];
-  if (audioFile) {
-    fd.append('bgm_file', audioFile);
-  }
-  fd.append('bgm_preset', presetSelect.value);
-  fd.append('video_volume', (document.getElementById('wm-video-volume').value / 100).toFixed(2));
-  fd.append('bgm_volume', (document.getElementById('wm-bgm-volume').value / 100).toFixed(2));
-  fd.append('bypass_audio', document.getElementById('wm-bypass-audio').checked ? 'true' : 'false');
-
-  fd.append('position', wmPos);
-  fd.append('logo_scale', document.getElementById('wm-logo-scale').value);
-  fd.append('opacity', (document.getElementById('wm-opacity').value / 100).toFixed(2));
-  fd.append('margin', document.getElementById('wm-margin').value);
-  fd.append('resolution', document.getElementById('wm-resolution').value);
-
-  // Text watermark params
+  const bgmPreset = presetSelect.value;
+  const videoVolume = (document.getElementById('wm-video-volume').value / 100).toFixed(2);
+  const bgmVolume = (document.getElementById('wm-bgm-volume').value / 100).toFixed(2);
+  const bypassAudio = document.getElementById('wm-bypass-audio').checked ? 'true' : 'false';
+  const position = wmPos;
+  const logoScale = document.getElementById('wm-logo-scale').value;
+  const opacity = (document.getElementById('wm-opacity').value / 100).toFixed(2);
+  const margin = document.getElementById('wm-margin').value;
+  const resolution = document.getElementById('wm-resolution').value;
   const useText = document.getElementById('wm-use-text').checked;
-  fd.append('use_text', useText ? 'true' : 'false');
-  fd.append('watermark_text', document.getElementById('wm-text-content').value);
-  fd.append('text_layout', document.getElementById('wm-text-layout').value);
-  fd.append('text_anim_speed', document.getElementById('wm-anim-speed').value);
-  fd.append('text_color', document.getElementById('wm-text-color').value);
-  fd.append('text_size', document.getElementById('wm-text-size').value);
-  fd.append('text_opacity', (document.getElementById('wm-text-opacity').value / 100).toFixed(2));
+  const watermarkText = document.getElementById('wm-text-content').value;
+  const textLayout = document.getElementById('wm-text-layout').value;
+  const textAnimSpeed = document.getElementById('wm-anim-speed').value;
+  const textColor = document.getElementById('wm-text-color').value;
+  const textSize = document.getElementById('wm-text-size').value;
+  const textOpacity = (document.getElementById('wm-text-opacity').value / 100).toFixed(2);
 
-  await runProcess('wm', '/process', fd, [
-    'Tải video và xử lý âm thanh...',
-    'Định dạng chuẩn TikTok 1080×1920...',
-    'Hòa âm giữ tiếng gốc & lồng nhạc nền...',
-    'Áp dụng thuật toán né bản quyền âm thanh...',
-    'Chèn chữ & encode video chuẩn TikTok...',
-    'Sắp xong rồi...',
-  ]);
+  const completedJobIds = [];
+  const total = wmBatchQueue.length;
+  let successCount = 0;
+
+  for (let i = 0; i < total; i++) {
+    const item = wmBatchQueue[i];
+    item.status = 'processing';
+    renderBatchQueue();
+
+    const currentPercent = Math.round((i / total) * 100);
+    bar.style.width = currentPercent + '%';
+    titleEl.textContent = `⏳ Đang xử lý video ${i + 1}/${total}`;
+    statusEl.textContent = `Đang hòa âm & chèn watermark: "${item.file.name}"...`;
+
+    const fd = new FormData();
+    fd.append('video', item.file);
+    if (logoFile) fd.append('logo', logoFile);
+    if (audioFile) fd.append('bgm_file', audioFile);
+    fd.append('bgm_preset', bgmPreset);
+    fd.append('video_volume', videoVolume);
+    fd.append('bgm_volume', bgmVolume);
+    fd.append('bypass_audio', bypassAudio);
+    fd.append('position', position);
+    fd.append('logo_scale', logoScale);
+    fd.append('opacity', opacity);
+    fd.append('margin', margin);
+    fd.append('resolution', resolution);
+    fd.append('use_text', useText ? 'true' : 'false');
+    fd.append('watermark_text', watermarkText);
+    fd.append('text_layout', textLayout);
+    fd.append('text_anim_speed', textAnimSpeed);
+    fd.append('text_color', textColor);
+    fd.append('text_size', textSize);
+    fd.append('text_opacity', textOpacity);
+
+    try {
+      const res = await fetch('/process', { method: 'POST', body: fd });
+      if (!res.ok) {
+        let errMsg = `HTTP ${res.status}`;
+        try { const e = await res.json(); errMsg = e.detail || errMsg; } catch(_) {}
+        throw new Error(errMsg);
+      }
+      const data = await res.json();
+      item.status = 'done';
+      item.downloadUrl = data.download_url;
+      item.filename = data.filename;
+      item.jobId = data.job_id;
+      completedJobIds.push(data.job_id);
+      successCount++;
+    } catch(err) {
+      item.status = 'error';
+      item.error = err.message;
+    }
+    renderBatchQueue();
+  }
+
+  bar.style.width = '100%';
+  statusEl.textContent = `Đã hoàn tất ${successCount}/${total} video!`;
+  isProcessingBatch = false;
+
+  setTimeout(async () => {
+    document.getElementById('progress-wm').style.display = 'none';
+    document.getElementById('wm-result').style.display = 'block';
+
+    const resultTitle = document.getElementById('wm-result-title');
+    const resultSub = document.getElementById('wm-result-sub');
+    const zipBtn = document.getElementById('wm-zip-btn');
+    const downloadAllBtn = document.getElementById('wm-download-all-btn');
+    const singleDownloadBtn = document.getElementById('wm-download-single');
+
+    resultTitle.textContent = `Hoàn tất xử lý ${successCount}/${total} video!`;
+    resultSub.textContent = `Tất cả video thành công đã được chèn animation watermark, logo và hòa âm né bản quyền.`;
+
+    if (total === 1 && successCount === 1) {
+      zipBtn.style.display = 'none';
+      downloadAllBtn.style.display = 'none';
+      singleDownloadBtn.style.display = 'inline-flex';
+      singleDownloadBtn.href = wmBatchQueue[0].downloadUrl;
+      singleDownloadBtn.setAttribute('download', wmBatchQueue[0].filename || 'video.mp4');
+    } else if (successCount > 1) {
+      downloadAllBtn.style.display = 'inline-flex';
+      singleDownloadBtn.style.display = 'none';
+      zipBtn.style.display = 'inline-flex';
+      zipBtn.textContent = '⏳ Đang đóng gói file ZIP...';
+      zipBtn.style.pointerEvents = 'none';
+      zipBtn.style.opacity = '0.6';
+
+      try {
+        const zipRes = await fetch('/create-batch-zip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_ids: completedJobIds })
+        });
+        if (zipRes.ok) {
+          const zipData = await zipRes.json();
+          zipBtn.href = zipData.download_url;
+          zipBtn.setAttribute('download', zipData.filename);
+          zipBtn.textContent = `📦 Tải xuống tất cả (.ZIP - ${zipData.count} video)`;
+          zipBtn.style.pointerEvents = 'auto';
+          zipBtn.style.opacity = '1';
+        } else {
+          zipBtn.style.display = 'none';
+        }
+      } catch(e) {
+        zipBtn.style.display = 'none';
+      }
+    } else {
+      zipBtn.style.display = 'none';
+      downloadAllBtn.style.display = 'none';
+      singleDownloadBtn.style.display = 'none';
+    }
+
+    checkWmReady();
+  }, 600);
 });
 
 // ── AI Enhance tab ──
@@ -818,6 +1227,9 @@ async function runProcess(prefix, endpoint, formData, statuses, slowProgress = f
 
 // ── Reset panel ──
 function resetPanel(prefix) {
+  if (prefix === 'wm') {
+    clearBatchVideos();
+  }
   ['wm-video-input','wm-logo-input','wm-audio-input','ai-video-input'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });

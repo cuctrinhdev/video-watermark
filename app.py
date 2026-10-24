@@ -2,12 +2,14 @@ import asyncio
 import os
 import shutil
 import uuid
+import zipfile
 from pathlib import Path
 from typing import Optional
 
 import aiofiles
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel
 from text_overlay import generate_text_overlay
 
 app = FastAPI(title="Video Watermark & AI Tool")
@@ -431,6 +433,51 @@ async def download_enhanced(job_id: str):
         path=path,
         media_type="video/mp4",
         filename=f"ai_{path.name}"
+    )
+
+
+class BatchZipRequest(BaseModel):
+    job_ids: list[str]
+
+
+@app.post("/create-batch-zip")
+async def create_batch_zip(req: BatchZipRequest):
+    if not req.job_ids:
+        raise HTTPException(status_code=400, detail="Không có job ID nào.")
+
+    batch_id = str(uuid.uuid4())[:8]
+    zip_filename = f"batch_{batch_id}_watermarked_videos.zip"
+    zip_path = OUTPUT_DIR / zip_filename
+
+    added_count = 0
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for jid in req.job_ids:
+            matches = list(OUTPUT_DIR.glob(f"{jid}_*ready.mp4"))
+            if not matches:
+                matches = list(OUTPUT_DIR.glob(f"{jid}_*.mp4"))
+            for f in matches:
+                zipf.write(f, arcname=f.name)
+                added_count += 1
+
+    if added_count == 0:
+        raise HTTPException(status_code=404, detail="Không tìm thấy video nào để đóng gói ZIP.")
+
+    return {
+        "download_url": f"/download-zip/{zip_filename}",
+        "filename": zip_filename,
+        "count": added_count
+    }
+
+
+@app.get("/download-zip/{filename}")
+async def download_zip(filename: str):
+    path = OUTPUT_DIR / filename
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="File ZIP không tồn tại hoặc đã bị xóa.")
+    return FileResponse(
+        path=path,
+        media_type="application/zip",
+        filename=filename
     )
 
 
