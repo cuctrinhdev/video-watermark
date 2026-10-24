@@ -46,33 +46,24 @@ def generate_text_overlay(
     fill_col, stroke_col, border_col = parse_colors(color, opacity)
     stroke_w = max(1, font_size // 10)
 
-    # Animated layouts: generate a compact high-res badge to be animated dynamically via FFmpeg
+    # Animated layouts: generate pure text with stroke outline (transparent background, no extra icons)
     if layout in ("bounce", "smooth-glide", "ticker-scroll"):
-        badge_text = f"✦ {clean_text} ✦"
-        bbox = font.getbbox(badge_text)
+        text_str = clean_text
+        bbox = font.getbbox(text_str)
         bw = bbox[2] - bbox[0]
         bh = bbox[3] - bbox[1]
 
-        pad_x = max(16, font_size // 2 + 4)
-        pad_y = max(10, font_size // 3 + 2)
-        img_w = bw + pad_x * 2 + stroke_w * 4
-        img_h = bh + pad_y * 2 + stroke_w * 4
+        # Padding just enough so stroke outline is not clipped
+        pad = max(4, stroke_w * 3)
+        img_w = bw + pad * 2
+        img_h = bh + pad * 2
 
         badge_img = Image.new("RGBA", (img_w, img_h), (0, 0, 0, 0))
         b_draw = ImageDraw.Draw(badge_img)
 
-        pill_alpha = int(160 * max(0.1, min(1.0, opacity)))
-        b_draw.rounded_rectangle(
-            [2, 2, img_w - 3, img_h - 3],
-            radius=img_h // 2,
-            fill=(15, 18, 28, pill_alpha),
-            outline=border_col,
-            width=max(1, stroke_w // 2)
-        )
-
-        tx = pad_x + stroke_w * 2 - bbox[0]
-        ty = pad_y + stroke_w * 2 - bbox[1]
-        b_draw.text((tx, ty), badge_text, font=font, fill=fill_col, stroke_width=stroke_w, stroke_fill=stroke_col)
+        tx = pad - bbox[0]
+        ty = pad - bbox[1]
+        b_draw.text((tx, ty), text_str, font=font, fill=fill_col, stroke_width=stroke_w, stroke_fill=stroke_col)
         badge_img.save(output_path, "PNG")
         return output_path
 
