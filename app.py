@@ -114,7 +114,7 @@ async def get_template_asset(template_name: str, filename: str):
 async def process_video(
     video: UploadFile = File(...),
     logo: Optional[UploadFile] = File(None),
-    logo_anim: str = Form("none"),
+    logo_anim: str = Form("pulse"),
     shopee_sticker: Optional[str] = Form("none"),
     template: Optional[str] = Form("template1"),
     bgm_file: Optional[UploadFile] = File(None),
@@ -172,9 +172,10 @@ async def process_video(
     elif template == "template1":
         tpl_logo = TEMPLATE1_DIR / "Logo.png"
         if tpl_logo.exists():
-            if logo_anim and logo_anim != "none":
+            anim_type = logo_anim if logo_anim is not None else "pulse"
+            if anim_type and anim_type != "none":
                 anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
-                logo_path = animate_static_logo(tpl_logo, logo_anim, anim_logo_path)
+                logo_path = animate_static_logo(tpl_logo, anim_type, anim_logo_path)
                 is_temp_logo = True
             else:
                 logo_path = tpl_logo

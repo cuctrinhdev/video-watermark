@@ -523,7 +523,7 @@
             <span class="pill-icon">🖼️</span>
             <div>
               <div class="pill-label">Logo mặc định</div>
-              <div class="pill-val">Logo.png (50% Góc dưới P, nét 100%)</div>
+              <div class="pill-val">Logo.png (50% Góc dưới P, Phóng to thu nhỏ ✨)</div>
             </div>
           </div>
           <div class="tpl-pill">
@@ -549,7 +549,7 @@
           </div>
         </div>
         <div class="template-note">
-          🎯 <strong>Bạn chỉ cần tải video lên và bấm "Bắt đầu xử lý"</strong> — Hệ thống sẽ tự động ghép trọn bộ Logo, Nhạc nền và Chữ animation mà bạn không cần phải thao tác sửa đổi gì!
+          🎯 <strong>Bạn chỉ cần tải video lên và bấm "Bắt đầu xử lý"</strong> — Hệ thống sẽ tự động ghép trọn bộ Logo (hiệu ứng phóng to thu nhỏ), Nhạc nền và Chữ animation mà bạn không cần phải thao tác sửa đổi gì!
         </div>
       </div>
     </div>
@@ -589,9 +589,9 @@
           <div style="flex:1;">
             <div style="font-size:12px; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
               <span>⭐ Đang dùng Logo Mẫu 1 (Logo.png)</span>
-              <span style="font-size:10px; background:var(--accent); color:#fff; padding:1px 6px; border-radius:4px;">Tự động</span>
+              <span style="font-size:10px; background:var(--accent); color:#fff; padding:1px 6px; border-radius:4px;">Phóng to thu nhỏ</span>
             </div>
-            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 50%, đặt tại góc dưới phải, độ rõ nét 100%.</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 50%, góc dưới phải, hiệu ứng <strong>Phóng to thu nhỏ nhịp nhàng</strong>.</div>
           </div>
         </div>
 
@@ -625,9 +625,9 @@
         <div id="wm-logo-anim-wrap" style="margin-top:12px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.08);">
           <label class="field-label">Hiệu ứng động cho Logo tải lên (Biến ảnh tĩnh thành GIF)</label>
           <select id="wm-logo-anim" style="width:100%; font-size:12px; padding:9px 10px;">
-            <option value="none" selected>⏹️ Giữ nguyên (Ảnh tĩnh, không chuyển động)</option>
+            <option value="none">⏹️ Giữ nguyên (Ảnh tĩnh, không chuyển động)</option>
             <option value="spin">💫 Xoay tròn 360° liên tục (Smooth 360° Spin)</option>
-            <option value="pulse">🫀 Phóng to thu nhỏ nhịp nhàng (Heartbeat Pulse)</option>
+            <option value="pulse" selected>🫀 Phóng to thu nhỏ nhịp nhàng (Heartbeat Pulse)</option>
             <option value="shimmer">✨ Vệt sáng kim loại quét qua (Shimmer Shine)</option>
             <option value="bounce">🏓 Nhún nhảy đàn hồi có bóng sàn (Squash & Stretch)</option>
             <option value="wiggle">🌊 Lắc lư qua lại như treo lơ lửng (Floating Sway)</option>
@@ -1087,6 +1087,10 @@ function applyTemplate(name) {
     const brBtn = document.querySelector('.pos-btn[data-pos="bottom-right"]');
     if (brBtn) brBtn.classList.add('active');
     wmPos = 'bottom-right';
+
+    // Logo Animation: pulse (Phóng to thu nhỏ nhịp nhàng)
+    const logoAnimSel = document.getElementById('wm-logo-anim');
+    if (logoAnimSel) logoAnimSel.value = 'pulse';
 
     // Text watermark settings: ON, "Chốt Đơn Ăn Mì", smooth-glide, normal, white, 40px, 50%
     const useText = document.getElementById('wm-use-text');
