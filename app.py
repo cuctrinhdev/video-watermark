@@ -322,30 +322,39 @@ async def process_video(
     has_video_audio = await check_has_audio(video_path)
     audio_map = []
 
+    # Map BGM volume to true perceptual loudness curve:
+    # A linear gain of 0.20 only reduces sound by ~14dB, which still sounds like 80%-100% loudness to human ears.
+    # pow(v, 1.75) maps 0.20 to ~0.06 (-24.5 dB), which truly sounds like a gentle 20% background volume!
+    if bgm_volume <= 1.0:
+        eff_bgm_vol = round(pow(max(0.0, float(bgm_volume)), 1.75), 4)
+    else:
+        eff_bgm_vol = round(float(bgm_volume), 2)
+
     if bgm_input_idx is not None:
-        if has_video_audio:
+        if has_video_audio and video_volume > 0.001:
             orig_audio_filters = []
             if bypass_audio:
                 orig_audio_filters.append("asetrate=44100*1.015,aresample=44100")
             if speed_factor and abs(speed_factor - 1.0) >= 0.005:
                 orig_audio_filters.append(f"atempo={speed_factor}")
-            orig_audio_filters.append(f"volume={video_volume}")
+            if video_volume != 1.0:
+                orig_audio_filters.append(f"volume={video_volume}")
             orig_audio_filters.append("aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo")
             filters.append(f"[0:a]{','.join(orig_audio_filters)}[a_orig]")
 
-            bgm_filters = [f"volume={bgm_volume}", "aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo"]
+            bgm_filters = [f"volume={eff_bgm_vol}", "aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo"]
             filters.append(f"[{bgm_input_idx}:a]{','.join(bgm_filters)}[a_bgm]")
 
             filters.append("[a_orig][a_bgm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]")
             audio_map = ["-map", "[aout]"]
         else:
-            # Video has no original audio, use BGM directly
-            bgm_filters = [f"volume={bgm_volume}", "aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo"]
+            # Video has no original audio or user muted video_volume, use BGM directly
+            bgm_filters = [f"volume={eff_bgm_vol}", "aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo"]
             filters.append(f"[{bgm_input_idx}:a]{','.join(bgm_filters)}[aout]")
             audio_map = ["-map", "[aout]"]
     else:
         # No BGM
-        if has_video_audio:
+        if has_video_audio and video_volume > 0.001:
             orig_audio_filters = []
             if bypass_audio:
                 orig_audio_filters.append("asetrate=44100*1.015,aresample=44100")
