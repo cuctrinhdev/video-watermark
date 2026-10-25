@@ -126,7 +126,7 @@ async def process_video(
     color_boost: bool = Form(True),
     strip_metadata: bool = Form(True),
     position: str = Form("bottom-right"),
-    logo_scale: int = Form(50),
+    logo_scale: int = Form(75),
     opacity: float = Form(1.0),
     margin: int = Form(25),
     resolution: str = Form("1080:1920"),

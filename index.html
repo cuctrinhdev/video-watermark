@@ -523,7 +523,7 @@
             <span class="pill-icon">🖼️</span>
             <div>
               <div class="pill-label">Logo mặc định</div>
-              <div class="pill-val">Logo.png (50% Góc dưới P, Phóng to thu nhỏ ✨)</div>
+              <div class="pill-val">Logo.png (75% Góc dưới P, Phóng to thu nhỏ ✨)</div>
             </div>
           </div>
           <div class="tpl-pill">
@@ -591,7 +591,7 @@
               <span>⭐ Đang dùng Logo Mẫu 1 (Logo.png)</span>
               <span style="font-size:10px; background:var(--accent); color:#fff; padding:1px 6px; border-radius:4px;">Phóng to thu nhỏ</span>
             </div>
-            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 50%, góc dưới phải, hiệu ứng <strong>Phóng to thu nhỏ nhịp nhàng</strong>.</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 75%, góc dưới phải, hiệu ứng <strong>Phóng to thu nhỏ nhịp nhàng</strong>.</div>
           </div>
         </div>
 
@@ -735,8 +735,8 @@
           <div>
             <label class="field-label">Kích thước logo (% chiều rộng)</label>
             <div class="slider-wrap">
-              <input type="range" id="wm-logo-scale" min="5" max="100" value="50" oninput="document.getElementById('wm-scale-val').textContent=this.value+'%'" />
-              <span class="slider-value" id="wm-scale-val">50%</span>
+              <input type="range" id="wm-logo-scale" min="5" max="100" value="75" oninput="document.getElementById('wm-scale-val').textContent=this.value+'%'" />
+              <span class="slider-value" id="wm-scale-val">75%</span>
             </div>
           </div>
           <div>
@@ -1064,11 +1064,11 @@ function applyTemplate(name) {
     const resSel = document.getElementById('wm-resolution');
     if (resSel) resSel.value = '1080:1920';
 
-    // Logo settings: scale 50%, opacity 100%, margin 25px, bottom-right
+    // Logo settings: scale 75%, opacity 100%, margin 25px, bottom-right
     const logoScale = document.getElementById('wm-logo-scale');
     if (logoScale) {
-      logoScale.value = 50;
-      document.getElementById('wm-scale-val').textContent = '50%';
+      logoScale.value = 75;
+      document.getElementById('wm-scale-val').textContent = '75%';
     }
 
     const opacity = document.getElementById('wm-opacity');
