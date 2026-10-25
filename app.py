@@ -96,6 +96,9 @@ async def process_video(
     video_volume: float = Form(1.0),
     bgm_volume: float = Form(0.20),
     bypass_audio: bool = Form(True),
+    speed_factor: float = Form(1.02),
+    color_boost: bool = Form(True),
+    strip_metadata: bool = Form(True),
     position: str = Form("bottom-right"),
     logo_scale: int = Form(15),
     opacity: float = Form(1.0),
@@ -192,10 +195,18 @@ async def process_video(
     logo_width = f"iw*{logo_scale}/100"
 
     # Base scale & pad to target resolution (TikTok 9:16 or selected)
-    filters = [
-        f"[0:v]scale={res_w}:{res_h}:force_original_aspect_ratio=decrease,"
-        f"pad={res_w}:{res_h}:(ow-iw)/2:(oh-ih)/2:color=black[bg]"
+    base_v_filters = [
+        f"scale={res_w}:{res_h}:force_original_aspect_ratio=decrease",
+        f"pad={res_w}:{res_h}:(ow-iw)/2:(oh-ih)/2:color=black",
     ]
+    if color_boost:
+        # Micro color grading & contrast boost (phá pHash và histogram matching)
+        base_v_filters.append("eq=contrast=1.03:brightness=0.01:saturation=1.04")
+    if speed_factor and abs(speed_factor - 1.0) >= 0.005:
+        # Micro speed adjustment (phá vỡ timeline và frame timestamps)
+        base_v_filters.append(f"setpts=PTS/{speed_factor}")
+
+    filters = [f"[0:v]{','.join(base_v_filters)}[bg]"]
     curr_bg = "[bg]"
 
     # Layer Text overlay
@@ -256,6 +267,8 @@ async def process_video(
             orig_audio_filters = []
             if bypass_audio:
                 orig_audio_filters.append("asetrate=44100*1.015,aresample=44100")
+            if speed_factor and abs(speed_factor - 1.0) >= 0.005:
+                orig_audio_filters.append(f"atempo={speed_factor}")
             orig_audio_filters.append(f"volume={video_volume}")
             orig_audio_filters.append("aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo")
             filters.append(f"[0:a]{','.join(orig_audio_filters)}[a_orig]")
@@ -273,14 +286,16 @@ async def process_video(
     else:
         # No BGM
         if has_video_audio:
+            orig_audio_filters = []
             if bypass_audio:
-                filters.append(f"[0:a]asetrate=44100*1.015,aresample=44100,volume={video_volume},aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]")
-                audio_map = ["-map", "[aout]"]
-            elif video_volume != 1.0:
-                filters.append(f"[0:a]volume={video_volume},aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]")
-                audio_map = ["-map", "[aout]"]
-            else:
-                audio_map = ["-map", "0:a?"]
+                orig_audio_filters.append("asetrate=44100*1.015,aresample=44100")
+            if speed_factor and abs(speed_factor - 1.0) >= 0.005:
+                orig_audio_filters.append(f"atempo={speed_factor}")
+            if video_volume != 1.0:
+                orig_audio_filters.append(f"volume={video_volume}")
+            orig_audio_filters.append("aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo")
+            filters.append(f"[0:a]{','.join(orig_audio_filters)}[aout]")
+            audio_map = ["-map", "[aout]"]
         else:
             audio_map = []
 
@@ -289,6 +304,15 @@ async def process_video(
         "-filter_complex", filter_complex,
         "-map", "[out]",
         *audio_map,
+    ])
+    if strip_metadata:
+        cmd.extend([
+            "-map_metadata", "-1",
+            "-fflags", "+bitexact",
+            "-flags:v", "+bitexact",
+            "-flags:a", "+bitexact",
+        ])
+    cmd.extend([
         "-c:v", "libx264", "-preset", "fast", "-crf", "22",
     ])
     if audio_map:

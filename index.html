@@ -551,19 +551,61 @@
         </div>
       </div>
 
-      <!-- 🎵 Audio & Anti-Copyright Music Card -->
+      <!-- 🛡️ Audio & Anti-Copyright Pro Card -->
       <div class="card full-col" style="border-color: rgba(78,205,196,0.35); background: linear-gradient(180deg, rgba(78,205,196,0.03), var(--surface));">
         <div class="card-title">
           <div class="card-title-left">
             <span class="dot" style="background:var(--accent2)"></span>
-            <span>🎵 Âm thanh & Lồng nhạc nền né bản quyền (Giữ tiếng gốc)</span>
+            <span>🛡️ Cơ chế Lách AI & Bản Quyền Nâng Cao (Anti-Detection Pro)</span>
           </div>
-          <div class="toggle-wrap">
-            <label class="toggle">
+        </div>
+
+        <!-- Anti-Detection Pro Row -->
+        <div class="settings-grid" style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 18px;">
+          <!-- 1. Strip Metadata -->
+          <div style="background:var(--surface2); padding:12px 14px; border-radius:10px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:3px;">🧹 Xóa sạch Metadata gốc</div>
+              <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">Xóa bỏ ngày tạo, GPS, máy quay, tag Snaptik/CapCut (-map_metadata -1)</div>
+            </div>
+            <label class="toggle" style="flex-shrink:0; margin-left:12px;">
+              <input type="checkbox" id="wm-strip-metadata" checked />
+              <div class="toggle-slider"></div>
+            </label>
+          </div>
+
+          <!-- 2. Bypass Audio Pitch -->
+          <div style="background:var(--surface2); padding:12px 14px; border-radius:10px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:3px;">🎵 Lệch tông giọng vi mô (+1.5% Pitch)</div>
+              <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">Lệch phổ sóng âm né bot Content ID, tai người nghe giọng tự nhiên 100%</div>
+            </div>
+            <label class="toggle" style="flex-shrink:0; margin-left:12px;">
               <input type="checkbox" id="wm-bypass-audio" checked />
               <div class="toggle-slider"></div>
             </label>
-            <span class="toggle-label" style="color:var(--accent2)">⚡ Lách AI quét âm thanh (+1.5% Pitch)</span>
+          </div>
+
+          <!-- 3. Micro Color Boost -->
+          <div style="background:var(--surface2); padding:12px 14px; border-radius:10px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:3px;">🎨 Nâng màu vi mô (Color Boost)</div>
+              <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">Tăng +3% tương phản & độ tươi màu, phá mã pHash so khớp pixel AI</div>
+            </div>
+            <label class="toggle" style="flex-shrink:0; margin-left:12px;">
+              <input type="checkbox" id="wm-color-boost" checked />
+              <div class="toggle-slider"></div>
+            </label>
+          </div>
+
+          <!-- 4. Micro Speed -->
+          <div style="background:var(--surface2); padding:12px 14px; border-radius:10px; border:1px solid var(--border);">
+            <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;">⚡ Tốc độ vi mô (Timeline Shifting)</div>
+            <select id="wm-speed-factor" style="width:100%; font-size:12px; padding:8px 10px;">
+              <option value="1.02" selected>⚡ 1.02x — Nhanh hơn 2% (Khuyên dùng: Lệch toàn bộ timeline/giây gốc)</option>
+              <option value="1.0">⏱️ 1.00x — Chuẩn (Giữ nguyên tốc độ gốc)</option>
+              <option value="1.04">🏎️ 1.04x — Nhanh hơn 4% (Thích hợp video nói chuyện, review)</option>
+            </select>
           </div>
         </div>
 
@@ -1023,7 +1065,10 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
   const bgmPreset = presetSelect.value;
   const videoVolume = (document.getElementById('wm-video-volume').value / 100).toFixed(2);
   const bgmVolume = (document.getElementById('wm-bgm-volume').value / 100).toFixed(2);
+  const stripMetadata = document.getElementById('wm-strip-metadata').checked ? 'true' : 'false';
   const bypassAudio = document.getElementById('wm-bypass-audio').checked ? 'true' : 'false';
+  const colorBoost = document.getElementById('wm-color-boost').checked ? 'true' : 'false';
+  const speedFactor = document.getElementById('wm-speed-factor').value;
   const position = wmPos;
   const logoScale = document.getElementById('wm-logo-scale').value;
   const opacity = (document.getElementById('wm-opacity').value / 100).toFixed(2);
@@ -1058,7 +1103,10 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
     fd.append('bgm_preset', bgmPreset);
     fd.append('video_volume', videoVolume);
     fd.append('bgm_volume', bgmVolume);
+    fd.append('strip_metadata', stripMetadata);
     fd.append('bypass_audio', bypassAudio);
+    fd.append('color_boost', colorBoost);
+    fd.append('speed_factor', speedFactor);
     fd.append('position', position);
     fd.append('logo_scale', logoScale);
     fd.append('opacity', opacity);
