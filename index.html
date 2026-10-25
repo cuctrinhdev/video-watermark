@@ -71,6 +71,114 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* ── Template Banner ── */
+    .template-banner {
+      background: linear-gradient(135deg, rgba(108, 99, 255, 0.12), rgba(247, 183, 49, 0.12));
+      border: 1.5px solid rgba(108, 99, 255, 0.4);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 22px;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transition: all .25s ease;
+    }
+    .template-banner.active-preset {
+      border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(247, 183, 49, 0.2);
+    }
+    .template-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .template-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(247, 183, 49, 0.15);
+      border: 1px solid rgba(247, 183, 49, 0.35);
+      padding: 5px 12px;
+      border-radius: 50px;
+    }
+    .template-toggle-group {
+      display: flex;
+      gap: 6px;
+      background: var(--surface2);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .tpl-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tpl-toggle-btn:hover {
+      color: var(--text);
+    }
+    .tpl-toggle-btn.active {
+      background: linear-gradient(135deg, var(--gold), #e67e22);
+      color: #000;
+      box-shadow: 0 2px 10px rgba(247, 183, 49, 0.35);
+    }
+    .template-pills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .tpl-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .pill-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .pill-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .pill-val {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .template-note {
+      font-size: 12px;
+      color: var(--accent2);
+      background: rgba(78, 205, 196, 0.08);
+      border-left: 3px solid var(--accent2);
+      padding: 9px 14px;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+    }
+
     /* ── Cards & Grid ── */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     .full-col { grid-column: 1 / -1; }
@@ -392,6 +500,60 @@
 
   <!-- ══════════ TAB 1: Watermark & TikTok Resize ══════════ -->
   <div class="tab-panel active" id="tab-wm">
+
+    <!-- 🌟 PRESET / TEMPLATE SELECTOR BANNER -->
+    <div class="template-banner active-preset" id="template-banner">
+      <div class="template-header">
+        <div class="template-badge">
+          <span>✨</span> MẪU CẤU HÌNH TỰ ĐỘNG SỐ 1
+        </div>
+        <div class="template-toggle-group">
+          <button type="button" class="tpl-toggle-btn active" id="btn-tpl-template1" onclick="applyTemplate('template1')">
+            ⭐ Mẫu 1 (Đang kích hoạt)
+          </button>
+          <button type="button" class="tpl-toggle-btn" id="btn-tpl-custom" onclick="applyTemplate('custom')">
+            ⚙️ Tự chỉnh tay
+          </button>
+        </div>
+      </div>
+
+      <div class="template-body" id="tpl-template1-body">
+        <div class="template-pills">
+          <div class="tpl-pill">
+            <span class="pill-icon">🖼️</span>
+            <div>
+              <div class="pill-label">Logo mặc định</div>
+              <div class="pill-val">Logo.png (50% Góc dưới P, nét 100%)</div>
+            </div>
+          </div>
+          <div class="tpl-pill">
+            <span class="pill-icon">🎵</span>
+            <div>
+              <div class="pill-label">Nhạc nền tự động</div>
+              <div class="pill-val">music.mp3 (20% Hòa âm né bot quét)</div>
+            </div>
+          </div>
+          <div class="tpl-pill">
+            <span class="pill-icon">✍️</span>
+            <div>
+              <div class="pill-label">Chữ Watermark</div>
+              <div class="pill-val">"Chốt Đơn Ăn Mì" (Lượn sóng 40px)</div>
+            </div>
+          </div>
+          <div class="tpl-pill">
+            <span class="pill-icon">📱</span>
+            <div>
+              <div class="pill-label">Độ phân giải & AI</div>
+              <div class="pill-val">TikTok 1080×1920 + Anti-Detection Pro</div>
+            </div>
+          </div>
+        </div>
+        <div class="template-note">
+          🎯 <strong>Bạn chỉ cần tải video lên và bấm "Bắt đầu xử lý"</strong> — Hệ thống sẽ tự động ghép trọn bộ Logo, Nhạc nền và Chữ animation mà bạn không cần phải thao tác sửa đổi gì!
+        </div>
+      </div>
+    </div>
+
     <div class="grid">
       <!-- Video Upload (Multi-file batch) -->
       <div class="card">
@@ -419,6 +581,18 @@
       <div class="card">
         <div class="card-title">
           <div class="card-title-left"><span class="dot" style="background:var(--accent2)"></span> Logo / Sticker Shopee động</div>
+        </div>
+
+        <!-- Template 1 Active Logo Indicator -->
+        <div id="tpl-logo-indicator" style="display:flex; align-items:center; gap:12px; background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.35); border-radius:10px; padding:10px 12px; margin-bottom:14px;">
+          <img src="/template-asset/template1/Logo.png" alt="Logo Template 1" style="width:48px; height:48px; object-fit:contain; background:rgba(0,0,0,0.35); border-radius:8px; border:1px solid rgba(255,255,255,0.1); padding:3px;" />
+          <div style="flex:1;">
+            <div style="font-size:12px; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+              <span>⭐ Đang dùng Logo Mẫu 1 (Logo.png)</span>
+              <span style="font-size:10px; background:var(--accent); color:#fff; padding:1px 6px; border-radius:4px;">Tự động</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 50%, đặt tại góc dưới phải, độ rõ nét 100%.</div>
+          </div>
         </div>
 
         <!-- Preset Shopee GIF selector -->
@@ -490,8 +664,8 @@
           <div>
             <label class="field-label">Kiểu hiển thị & Animation chữ</label>
             <select id="wm-text-layout" onchange="toggleAnimSpeedControl()">
-              <option value="bounce" selected>🏓 Animation nảy khắp nơi (Góc trái ➔ góc phải ➔ giữa...)</option>
-              <option value="smooth-glide">🌊 Animation lượn sóng mượt mà khắp video</option>
+              <option value="smooth-glide" selected>🌊 Animation lượn sóng mượt mà khắp video</option>
+              <option value="bounce">🏓 Animation nảy khắp nơi (Góc trái ➔ góc phải ➔ giữa...)</option>
               <option value="ticker-scroll">🚀 Animation chạy ngang qua màn hình (Marquee)</option>
               <option value="border">🔲 Chạy viền xung quanh 4 cạnh video (Tĩnh)</option>
               <option value="diagonal">📐 Lặp chéo khắp video (Grid chống trộm AI)</option>
@@ -527,16 +701,16 @@
           <div>
             <label class="field-label">Kích cỡ chữ</label>
             <div class="slider-wrap">
-              <input type="range" id="wm-text-size" min="18" max="52" value="28" oninput="document.getElementById('wm-text-size-val').textContent=this.value+'px'" />
-              <span class="slider-value" id="wm-text-size-val">28px</span>
+              <input type="range" id="wm-text-size" min="16" max="80" value="40" oninput="document.getElementById('wm-text-size-val').textContent=this.value+'px'" />
+              <span class="slider-value" id="wm-text-size-val">40px</span>
             </div>
           </div>
 
           <div>
             <label class="field-label">Độ rõ chữ</label>
             <div class="slider-wrap">
-              <input type="range" id="wm-text-opacity" min="20" max="100" value="85" oninput="document.getElementById('wm-text-opacity-val').textContent=this.value+'%'" />
-              <span class="slider-value" id="wm-text-opacity-val">85%</span>
+              <input type="range" id="wm-text-opacity" min="20" max="100" value="50" oninput="document.getElementById('wm-text-opacity-val').textContent=this.value+'%'" />
+              <span class="slider-value" id="wm-text-opacity-val">50%</span>
             </div>
           </div>
         </div>
@@ -561,8 +735,8 @@
           <div>
             <label class="field-label">Kích thước logo (% chiều rộng)</label>
             <div class="slider-wrap">
-              <input type="range" id="wm-logo-scale" min="5" max="50" value="15" oninput="document.getElementById('wm-scale-val').textContent=this.value+'%'" />
-              <span class="slider-value" id="wm-scale-val">15%</span>
+              <input type="range" id="wm-logo-scale" min="5" max="100" value="50" oninput="document.getElementById('wm-scale-val').textContent=this.value+'%'" />
+              <span class="slider-value" id="wm-scale-val">50%</span>
             </div>
           </div>
           <div>
@@ -647,6 +821,24 @@
               <option value="1.0">⏱️ 1.00x — Chuẩn (Giữ nguyên tốc độ gốc)</option>
               <option value="1.04">🏎️ 1.04x — Nhanh hơn 4% (Thích hợp video nói chuyện, review)</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Template 1 Active Audio Indicator -->
+        <div id="tpl-audio-indicator" style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(78,205,196,0.12); border:1px solid rgba(78,205,196,0.35); border-radius:10px; padding:10px 14px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:24px;">🎵</span>
+            <div>
+              <div style="font-size:12px; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+                <span>⭐ Đang kích hoạt Nhạc nền Mẫu 1</span>
+                <span style="font-size:10px; background:var(--accent2); color:#000; font-weight:700; padding:1px 6px; border-radius:4px;">music.mp3</span>
+              </div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Tự động hòa âm 20%, né bot bản quyền TikTok/Reels/Shorts.</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" id="tpl-music-play-btn" onclick="toggleTplMusic()" style="background:var(--surface2); border:1px solid var(--accent2); color:var(--accent2); border-radius:6px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all .2s;">▶ Nghe thử</button>
+            <audio id="tpl-audio-player" src="/template-asset/template1/music.mp3" style="display:none;"></audio>
           </div>
         </div>
 
@@ -848,9 +1040,141 @@ function setupDrop(dropId, inputId, nameId, checkFn) {
 }
 
 // ── Watermark tab ──
+let activeTemplate = 'template1';
 let wmPos = 'bottom-right';
 let wmBatchQueue = [];
 let isProcessingBatch = false;
+
+function applyTemplate(name) {
+  activeTemplate = name;
+  const btnTpl1 = document.getElementById('btn-tpl-template1');
+  const btnCustom = document.getElementById('btn-tpl-custom');
+  const tplLogoInd = document.getElementById('tpl-logo-indicator');
+  const tplAudioInd = document.getElementById('tpl-audio-indicator');
+  const tplBanner = document.getElementById('template-banner');
+
+  if (name === 'template1') {
+    if (btnTpl1) btnTpl1.classList.add('active');
+    if (btnCustom) btnCustom.classList.remove('active');
+    if (tplLogoInd) tplLogoInd.style.display = 'flex';
+    if (tplAudioInd) tplAudioInd.style.display = 'flex';
+    if (tplBanner) tplBanner.classList.add('active-preset');
+
+    // Resolution: TikTok 1080p
+    const resSel = document.getElementById('wm-resolution');
+    if (resSel) resSel.value = '1080:1920';
+
+    // Logo settings: scale 50%, opacity 100%, margin 25px, bottom-right
+    const logoScale = document.getElementById('wm-logo-scale');
+    if (logoScale) {
+      logoScale.value = 50;
+      document.getElementById('wm-scale-val').textContent = '50%';
+    }
+
+    const opacity = document.getElementById('wm-opacity');
+    if (opacity) {
+      opacity.value = 100;
+      document.getElementById('wm-opacity-val').textContent = '100%';
+    }
+
+    const margin = document.getElementById('wm-margin');
+    if (margin) {
+      margin.value = 25;
+      document.getElementById('wm-margin-val').textContent = '25px';
+    }
+
+    document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+    const brBtn = document.querySelector('.pos-btn[data-pos="bottom-right"]');
+    if (brBtn) brBtn.classList.add('active');
+    wmPos = 'bottom-right';
+
+    // Text watermark settings: ON, "Chốt Đơn Ăn Mì", smooth-glide, normal, white, 40px, 50%
+    const useText = document.getElementById('wm-use-text');
+    if (useText) useText.checked = true;
+
+    const textContent = document.getElementById('wm-text-content');
+    if (textContent) textContent.value = 'Chốt Đơn Ăn Mì';
+
+    const textLayout = document.getElementById('wm-text-layout');
+    if (textLayout) textLayout.value = 'smooth-glide';
+    toggleAnimSpeedControl();
+
+    const animSpeed = document.getElementById('wm-anim-speed');
+    if (animSpeed) animSpeed.value = 'normal';
+
+    const textColor = document.getElementById('wm-text-color');
+    if (textColor) textColor.value = 'white';
+
+    const textSize = document.getElementById('wm-text-size');
+    if (textSize) {
+      textSize.value = 40;
+      document.getElementById('wm-text-size-val').textContent = '40px';
+    }
+
+    const textOpacity = document.getElementById('wm-text-opacity');
+    if (textOpacity) {
+      textOpacity.value = 50;
+      document.getElementById('wm-text-opacity-val').textContent = '50%';
+    }
+
+    // Audio & Anti-detection:
+    const stripMeta = document.getElementById('wm-strip-metadata');
+    if (stripMeta) stripMeta.checked = true;
+
+    const bypassAud = document.getElementById('wm-bypass-audio');
+    if (bypassAud) bypassAud.checked = true;
+
+    const colorBoost = document.getElementById('wm-color-boost');
+    if (colorBoost) colorBoost.checked = true;
+
+    const speedFactor = document.getElementById('wm-speed-factor');
+    if (speedFactor) speedFactor.value = '1.02';
+
+    const vidVol = document.getElementById('wm-video-volume');
+    if (vidVol) {
+      vidVol.value = 100;
+      document.getElementById('wm-video-volume-val').textContent = '100%';
+    }
+
+    const bgmVol = document.getElementById('wm-bgm-volume');
+    if (bgmVol) {
+      bgmVol.value = 20;
+      updateBgmVolumeLabel(20);
+    }
+  } else {
+    if (btnTpl1) btnTpl1.classList.remove('active');
+    if (btnCustom) btnCustom.classList.add('active');
+    if (tplLogoInd) tplLogoInd.style.display = 'none';
+    if (tplAudioInd) tplAudioInd.style.display = 'none';
+    if (tplBanner) tplBanner.classList.remove('active-preset');
+  }
+}
+
+function toggleTplMusic() {
+  const audio = document.getElementById('tpl-audio-player');
+  const btn = document.getElementById('tpl-music-play-btn');
+  if (!audio) return;
+  if (!audio.paused) {
+    audio.pause();
+    audio.currentTime = 0;
+    if (btn) btn.textContent = '▶ Nghe thử';
+  } else {
+    stopBgmAudio();
+    audio.play().then(() => {
+      if (btn) btn.textContent = '⏸ Dừng';
+    }).catch(() => {
+      if (btn) btn.textContent = '▶ Nghe thử';
+    });
+  }
+}
+
+const tplAudio = document.getElementById('tpl-audio-player');
+if (tplAudio) {
+  tplAudio.addEventListener('ended', () => {
+    const btn = document.getElementById('tpl-music-play-btn');
+    if (btn) btn.textContent = '▶ Nghe thử';
+  });
+}
 
 const wmDrop = document.getElementById('wm-video-drop');
 const wmInput = document.getElementById('wm-video-input');
@@ -1171,6 +1495,7 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
 
     const fd = new FormData();
     fd.append('video', item.file);
+    fd.append('template', activeTemplate);
     if (logoFile) fd.append('logo', logoFile);
     fd.append('logo_anim', logoAnim);
     fd.append('shopee_sticker', shopeeSticker);
@@ -1352,6 +1677,7 @@ async function runProcess(prefix, endpoint, formData, statuses, slowProgress = f
 function resetPanel(prefix) {
   if (prefix === 'wm') {
     clearBatchVideos();
+    applyTemplate('template1');
   }
   ['wm-video-input','wm-logo-input','wm-audio-input','ai-video-input'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -1373,6 +1699,9 @@ function resetPanel(prefix) {
   document.getElementById(prefix + '-bar').style.width = '0%';
   document.getElementById(prefix + '-btn').disabled = true;
 }
+
+// Khởi chạy áp dụng Mẫu 1 tự động khi người dùng mở trang web
+applyTemplate('template1');
 </script>
 </body>
 </html>

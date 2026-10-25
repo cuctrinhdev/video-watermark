@@ -37,10 +37,13 @@ UPLOAD_DIR = Path("uploads")
 OUTPUT_DIR = Path("outputs")
 BGM_DIR = Path("bgm_samples")
 SHOPEE_GIFS_DIR = Path("shopee_gifs")
+OPTION_DIR = Path("option")
+TEMPLATE1_DIR = OPTION_DIR / "template1"
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 BGM_DIR.mkdir(exist_ok=True)
 SHOPEE_GIFS_DIR.mkdir(exist_ok=True)
+OPTION_DIR.mkdir(exist_ok=True)
 
 
 # ── Helper ─────────────────────────────────────────────────
@@ -97,6 +100,15 @@ async def get_shopee_gif(filename: str):
     return FileResponse(file_path, media_type="image/gif")
 
 
+@app.get("/template-asset/{template_name}/{filename}")
+async def get_template_asset(template_name: str, filename: str):
+    file_path = OPTION_DIR / template_name / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Template asset not found")
+    media_type = "audio/mpeg" if filename.endswith(".mp3") else "image/png"
+    return FileResponse(file_path, media_type=media_type)
+
+
 # ── Watermark + Resize + Audio Mix ─────────────────────────
 @app.post("/process")
 async def process_video(
@@ -104,6 +116,7 @@ async def process_video(
     logo: Optional[UploadFile] = File(None),
     logo_anim: str = Form("none"),
     shopee_sticker: Optional[str] = Form("none"),
+    template: Optional[str] = Form("template1"),
     bgm_file: Optional[UploadFile] = File(None),
     bgm_preset: Optional[str] = Form("none"),
     video_volume: float = Form(1.0),
@@ -113,16 +126,16 @@ async def process_video(
     color_boost: bool = Form(True),
     strip_metadata: bool = Form(True),
     position: str = Form("bottom-right"),
-    logo_scale: int = Form(15),
+    logo_scale: int = Form(50),
     opacity: float = Form(1.0),
-    margin: int = Form(20),
+    margin: int = Form(25),
     resolution: str = Form("1080:1920"),
-    use_text: bool = Form(False),
+    use_text: bool = Form(True),
     watermark_text: str = Form("Chốt Đơn Ăn Mì"),
-    text_layout: str = Form("bounce"),
-    text_color: str = Form("yellow"),
-    text_size: int = Form(30),
-    text_opacity: float = Form(0.85),
+    text_layout: str = Form("smooth-glide"),
+    text_color: str = Form("white"),
+    text_size: int = Form(40),
+    text_opacity: float = Form(0.50),
     text_anim_speed: str = Form("normal"),
 ):
     job_id = str(uuid.uuid4())[:8]
@@ -156,6 +169,16 @@ async def process_video(
         if preset_sticker.exists():
             logo_path = preset_sticker
             is_temp_logo = False
+    elif template == "template1":
+        tpl_logo = TEMPLATE1_DIR / "Logo.png"
+        if tpl_logo.exists():
+            if logo_anim and logo_anim != "none":
+                anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
+                logo_path = animate_static_logo(tpl_logo, logo_anim, anim_logo_path)
+                is_temp_logo = True
+            else:
+                logo_path = tpl_logo
+                is_temp_logo = False
 
     bgm_path = None
     is_temp_bgm = False
@@ -169,6 +192,11 @@ async def process_video(
         preset_file = BGM_DIR / f"{bgm_preset}.mp3"
         if preset_file.exists():
             bgm_path = preset_file
+            is_temp_bgm = False
+    elif template == "template1":
+        tpl_music = TEMPLATE1_DIR / "music.mp3"
+        if tpl_music.exists():
+            bgm_path = tpl_music
             is_temp_bgm = False
 
     res_w_str, res_h_str = resolution.split(":")
