@@ -446,6 +446,23 @@
           <div class="file-name" id="wm-logo-name"></div>
         </div>
         <button type="button" id="wm-logo-clear" style="display:none;margin-top:6px;background:transparent;border:1px solid var(--danger);color:var(--danger);font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;">✕ Xóa logo tải lên</button>
+
+        <!-- Logo Animation for uploaded static image -->
+        <div id="wm-logo-anim-wrap" style="margin-top:12px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.08);">
+          <label class="field-label">Hiệu ứng động cho Logo tải lên (Biến ảnh tĩnh thành GIF)</label>
+          <select id="wm-logo-anim" style="width:100%; font-size:12px; padding:9px 10px;">
+            <option value="none" selected>⏹️ Giữ nguyên (Ảnh tĩnh, không chuyển động)</option>
+            <option value="spin">💫 Xoay tròn 360° liên tục (Smooth 360° Spin)</option>
+            <option value="pulse">🫀 Phóng to thu nhỏ nhịp nhàng (Heartbeat Pulse)</option>
+            <option value="shimmer">✨ Vệt sáng kim loại quét qua (Shimmer Shine)</option>
+            <option value="bounce">🏓 Nhún nhảy đàn hồi có bóng sàn (Squash & Stretch)</option>
+            <option value="wiggle">🌊 Lắc lư qua lại như treo lơ lửng (Floating Sway)</option>
+            <option value="fade">💡 Mờ tỏ dần theo chu kỳ (Breathing Glow)</option>
+          </select>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.4;">
+            💡 Tự động biến ảnh PNG/JPG tĩnh thành ảnh GIF động lặp vô tận trên video.
+          </div>
+        </div>
       </div>
 
       <!-- Text Watermark Card -->
@@ -1110,6 +1127,7 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
 
   // Shared settings across all videos
   const logoFile = document.getElementById('wm-logo-input').files[0];
+  const logoAnim = document.getElementById('wm-logo-anim').value;
   const shopeeSticker = document.getElementById('wm-shopee-sticker').value;
   const audioFile = document.getElementById('wm-audio-input').files[0];
   const bgmPreset = presetSelect.value;
@@ -1149,6 +1167,7 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
     const fd = new FormData();
     fd.append('video', item.file);
     if (logoFile) fd.append('logo', logoFile);
+    fd.append('logo_anim', logoAnim);
     fd.append('shopee_sticker', shopeeSticker);
     if (audioFile) fd.append('bgm_file', audioFile);
     fd.append('bgm_preset', bgmPreset);

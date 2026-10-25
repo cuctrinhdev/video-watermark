@@ -11,6 +11,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from text_overlay import generate_text_overlay
+from logo_animator import animate_static_logo
 
 app = FastAPI(title="Video Watermark & AI Tool")
 
@@ -101,6 +102,7 @@ async def get_shopee_gif(filename: str):
 async def process_video(
     video: UploadFile = File(...),
     logo: Optional[UploadFile] = File(None),
+    logo_anim: str = Form("none"),
     shopee_sticker: Optional[str] = Form("none"),
     bgm_file: Optional[UploadFile] = File(None),
     bgm_preset: Optional[str] = Form("none"),
@@ -137,9 +139,17 @@ async def process_video(
     is_temp_logo = False
     if logo and logo.filename and len(logo.filename.strip()) > 0:
         logo_ext = Path(logo.filename).suffix or ".png"
-        logo_path = UPLOAD_DIR / f"{job_id}_logo{logo_ext}"
-        async with aiofiles.open(logo_path, "wb") as f:
+        raw_logo_path = UPLOAD_DIR / f"{job_id}_raw_logo{logo_ext}"
+        async with aiofiles.open(raw_logo_path, "wb") as f:
             await f.write(await logo.read())
+
+        if logo_anim and logo_anim != "none":
+            anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
+            logo_path = animate_static_logo(raw_logo_path, logo_anim, anim_logo_path)
+            raw_logo_path.unlink(missing_ok=True)
+        else:
+            logo_path = raw_logo_path
+
         is_temp_logo = True
     elif shopee_sticker and shopee_sticker != "none":
         preset_sticker = SHOPEE_GIFS_DIR / f"{shopee_sticker}.gif"
