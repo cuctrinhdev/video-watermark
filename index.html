@@ -415,18 +415,37 @@
         </div>
       </div>
 
-      <!-- Logo Upload -->
+      <!-- Logo Upload & Shopee GIF Presets -->
       <div class="card">
         <div class="card-title">
-          <div class="card-title-left"><span class="dot" style="background:var(--accent2)"></span> Logo ảnh (Tùy chọn)</div>
+          <div class="card-title-left"><span class="dot" style="background:var(--accent2)"></span> Logo / Sticker Shopee động</div>
         </div>
-        <div class="drop-zone" id="wm-logo-drop">
-          <input type="file" id="wm-logo-input" accept="image/*" />
-          <span class="drop-icon">🖼️</span>
-          <div class="drop-label">PNG trong suốt khuyến nghị</div>
-          <div class="drop-hint">PNG, WebP, JPG (hoặc bỏ trống nếu chỉ chèn chữ)</div>
+
+        <!-- Preset Shopee GIF selector -->
+        <div style="margin-bottom:12px;">
+          <label class="field-label">Chọn Sticker Shopee GIF động có sẵn</label>
+          <select id="wm-shopee-sticker" onchange="onShopeeStickerChanged()" style="width:100%; font-size:12px; padding:9px 10px;">
+            <option value="none" selected>❌ Không dùng (Hoặc tự tải logo riêng)</option>
+            <option value="shopee_bag">🛍️ Túi Cam Shopee Bouncing (Nhún nhảy đáng yêu)</option>
+            <option value="shopee_freeship">🚚 Freeship Extra Shimmer (Lấp lánh ánh kim)</option>
+            <option value="shopee_live">🔴 Shopee LIVE Đang Phát (Equalizer sóng nhạc)</option>
+            <option value="shopee_voucher">🎟️ Voucher Shopee Giảm Giá 50% (Lấp lánh sao ✦)</option>
+          </select>
+          <div id="wm-shopee-preview-wrap" style="display:none; margin-top:8px; text-align:center; background:rgba(0,0,0,0.25); border:1px dashed var(--border); border-radius:8px; padding:8px;">
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Xem trước GIF động:</div>
+            <img id="wm-shopee-preview-img" src="" alt="Shopee GIF Preview" style="max-height:55px; object-fit:contain;" />
+          </div>
+        </div>
+
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">Hoặc tải lên file Logo / GIF của bạn:</div>
+        <div class="drop-zone" id="wm-logo-drop" style="padding:14px;">
+          <input type="file" id="wm-logo-input" accept="image/*,.gif,.webp" />
+          <span class="drop-icon" style="font-size:22px; margin-bottom:4px;">🖼️</span>
+          <div class="drop-label" style="font-size:12px;">PNG, WebP hoặc GIF động</div>
+          <div class="drop-hint" style="font-size:10px;">(Hỗ trợ ảnh động .GIF tự động lặp vô tận)</div>
           <div class="file-name" id="wm-logo-name"></div>
         </div>
+        <button type="button" id="wm-logo-clear" style="display:none;margin-top:6px;background:transparent;border:1px solid var(--danger);color:var(--danger);font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;">✕ Xóa logo tải lên</button>
       </div>
 
       <!-- Text Watermark Card -->
@@ -925,6 +944,36 @@ wmDrop.addEventListener('drop', e => {
 
 setupDrop('wm-logo-drop', 'wm-logo-input', 'wm-logo-name', checkWmReady);
 
+function onShopeeStickerChanged() {
+  const sticker = document.getElementById('wm-shopee-sticker').value;
+  const wrap = document.getElementById('wm-shopee-preview-wrap');
+  const img = document.getElementById('wm-shopee-preview-img');
+  if (sticker && sticker !== 'none') {
+    img.src = `/shopee-gifs/${sticker}.gif`;
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    img.src = '';
+  }
+}
+
+const logoInput = document.getElementById('wm-logo-input');
+const logoClearBtn = document.getElementById('wm-logo-clear');
+logoInput.addEventListener('change', () => {
+  const hasFile = !!logoInput.files[0];
+  logoClearBtn.style.display = hasFile ? 'inline-block' : 'none';
+  if (hasFile) {
+    document.getElementById('wm-shopee-sticker').value = 'none';
+    onShopeeStickerChanged();
+  }
+});
+logoClearBtn.addEventListener('click', () => {
+  logoInput.value = '';
+  document.getElementById('wm-logo-name').textContent = '';
+  logoClearBtn.style.display = 'none';
+  checkWmReady();
+});
+
 // Audio setup
 const audioInput = document.getElementById('wm-audio-input');
 const audioClearBtn = document.getElementById('wm-audio-clear');
@@ -1061,6 +1110,7 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
 
   // Shared settings across all videos
   const logoFile = document.getElementById('wm-logo-input').files[0];
+  const shopeeSticker = document.getElementById('wm-shopee-sticker').value;
   const audioFile = document.getElementById('wm-audio-input').files[0];
   const bgmPreset = presetSelect.value;
   const videoVolume = (document.getElementById('wm-video-volume').value / 100).toFixed(2);
@@ -1099,6 +1149,7 @@ document.getElementById('wm-btn').addEventListener('click', async () => {
     const fd = new FormData();
     fd.append('video', item.file);
     if (logoFile) fd.append('logo', logoFile);
+    fd.append('shopee_sticker', shopeeSticker);
     if (audioFile) fd.append('bgm_file', audioFile);
     fd.append('bgm_preset', bgmPreset);
     fd.append('video_volume', videoVolume);

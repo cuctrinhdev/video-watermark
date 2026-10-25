@@ -35,9 +35,11 @@ REALESRGAN_MODELS = str(Path(__file__).parent / "realesrgan" /
 UPLOAD_DIR = Path("uploads")
 OUTPUT_DIR = Path("outputs")
 BGM_DIR = Path("bgm_samples")
+SHOPEE_GIFS_DIR = Path("shopee_gifs")
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 BGM_DIR.mkdir(exist_ok=True)
+SHOPEE_GIFS_DIR.mkdir(exist_ok=True)
 
 
 # ── Helper ─────────────────────────────────────────────────
@@ -86,11 +88,20 @@ async def get_bgm(filename: str):
     return FileResponse(file_path, media_type="audio/mpeg")
 
 
+@app.get("/shopee-gifs/{filename}")
+async def get_shopee_gif(filename: str):
+    file_path = SHOPEE_GIFS_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Shopee GIF not found")
+    return FileResponse(file_path, media_type="image/gif")
+
+
 # ── Watermark + Resize + Audio Mix ─────────────────────────
 @app.post("/process")
 async def process_video(
     video: UploadFile = File(...),
     logo: Optional[UploadFile] = File(None),
+    shopee_sticker: Optional[str] = Form("none"),
     bgm_file: Optional[UploadFile] = File(None),
     bgm_preset: Optional[str] = Form("none"),
     video_volume: float = Form(1.0),
@@ -123,11 +134,18 @@ async def process_video(
         await f.write(await video.read())
 
     logo_path = None
+    is_temp_logo = False
     if logo and logo.filename and len(logo.filename.strip()) > 0:
         logo_ext = Path(logo.filename).suffix or ".png"
         logo_path = UPLOAD_DIR / f"{job_id}_logo{logo_ext}"
         async with aiofiles.open(logo_path, "wb") as f:
             await f.write(await logo.read())
+        is_temp_logo = True
+    elif shopee_sticker and shopee_sticker != "none":
+        preset_sticker = SHOPEE_GIFS_DIR / f"{shopee_sticker}.gif"
+        if preset_sticker.exists():
+            logo_path = preset_sticker
+            is_temp_logo = False
 
     bgm_path = None
     is_temp_bgm = False
@@ -174,7 +192,10 @@ async def process_video(
         input_idx += 1
 
     if logo_path and logo_path.exists():
-        cmd.extend(["-i", str(logo_path)])
+        if logo_path.suffix.lower() == ".gif":
+            cmd.extend(["-ignore_loop", "0", "-i", str(logo_path)])
+        else:
+            cmd.extend(["-i", str(logo_path)])
         logo_input_idx = input_idx
         input_idx += 1
 
@@ -323,7 +344,7 @@ async def process_video(
         await run_cmd(cmd, "FFmpeg watermark: ")
     finally:
         video_path.unlink(missing_ok=True)
-        if logo_path:
+        if logo_path and is_temp_logo:
             logo_path.unlink(missing_ok=True)
         if text_overlay_path:
             text_overlay_path.unlink(missing_ok=True)
