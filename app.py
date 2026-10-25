@@ -128,7 +128,7 @@ async def process_video(
     position: str = Form("bottom-right"),
     logo_scale: int = Form(75),
     opacity: float = Form(1.0),
-    margin: int = Form(25),
+    margin: int = Form(0),
     resolution: str = Form("1080:1920"),
     use_text: bool = Form(True),
     watermark_text: str = Form("Chốt Đơn Ăn Mì"),
@@ -243,14 +243,23 @@ async def process_video(
         bgm_input_idx = input_idx
         input_idx += 1
 
-    margin_expr = str(margin)
-    positions = {
-        "top-left":     f"{margin_expr}:{margin_expr}",
-        "top-right":    f"W-w-{margin_expr}:{margin_expr}",
-        "bottom-left":  f"{margin_expr}:H-h-{margin_expr}",
-        "bottom-right": f"W-w-{margin_expr}:H-h-{margin_expr}",
-        "center":       f"(W-w)/2:(H-h)/2",
-    }
+    if margin == 0:
+        positions = {
+            "top-left":     "0:0",
+            "top-right":    "W-w:0",
+            "bottom-left":  "0:H-h",
+            "bottom-right": "W-w:H-h",
+            "center":       "(W-w)/2:(H-h)/2",
+        }
+    else:
+        margin_expr = str(margin)
+        positions = {
+            "top-left":     f"{margin_expr}:{margin_expr}",
+            "top-right":    f"W-w-{margin_expr}:{margin_expr}",
+            "bottom-left":  f"{margin_expr}:H-h-{margin_expr}",
+            "bottom-right": f"W-w-{margin_expr}:H-h-{margin_expr}",
+            "center":       f"(W-w)/2:(H-h)/2",
+        }
     overlay_pos = positions.get(position, positions["bottom-right"])
     logo_width = f"iw*{logo_scale}/100"
 

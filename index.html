@@ -591,7 +591,7 @@
               <span>⭐ Đang dùng Logo Mẫu 1 (Logo.png)</span>
               <span style="font-size:10px; background:var(--accent); color:#fff; padding:1px 6px; border-radius:4px;">Phóng to thu nhỏ</span>
             </div>
-            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 75%, góc dưới phải, hiệu ứng <strong>Phóng to thu nhỏ nhịp nhàng</strong>.</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Kích thước 75%, góc dưới phải (sát mép 0px), hiệu ứng <strong>Phóng to thu nhỏ nhịp nhàng</strong>.</div>
           </div>
         </div>
 
@@ -749,8 +749,8 @@
           <div>
             <label class="field-label">Khoảng cách mép (px)</label>
             <div class="slider-wrap">
-              <input type="range" id="wm-margin" min="0" max="100" value="25" oninput="document.getElementById('wm-margin-val').textContent=this.value+'px'" />
-              <span class="slider-value" id="wm-margin-val">25px</span>
+              <input type="range" id="wm-margin" min="0" max="100" value="0" oninput="document.getElementById('wm-margin-val').textContent=this.value+'px'" />
+              <span class="slider-value" id="wm-margin-val">0px</span>
             </div>
           </div>
           <div style="grid-column: 1 / -1;">
@@ -1064,7 +1064,7 @@ function applyTemplate(name) {
     const resSel = document.getElementById('wm-resolution');
     if (resSel) resSel.value = '1080:1920';
 
-    // Logo settings: scale 75%, opacity 100%, margin 25px, bottom-right
+    // Logo settings: scale 75%, opacity 100%, margin 0px, bottom-right
     const logoScale = document.getElementById('wm-logo-scale');
     if (logoScale) {
       logoScale.value = 75;
@@ -1079,8 +1079,8 @@ function applyTemplate(name) {
 
     const margin = document.getElementById('wm-margin');
     if (margin) {
-      margin.value = 25;
-      document.getElementById('wm-margin-val').textContent = '25px';
+      margin.value = 0;
+      document.getElementById('wm-margin-val').textContent = '0px';
     }
 
     document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
