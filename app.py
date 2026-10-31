@@ -39,11 +39,24 @@ BGM_DIR = Path("bgm_samples")
 SHOPEE_GIFS_DIR = Path("shopee_gifs")
 OPTION_DIR = Path("option")
 TEMPLATE1_DIR = OPTION_DIR / "template1"
+TEMPLATE2_DIR = OPTION_DIR / "template2"
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 BGM_DIR.mkdir(exist_ok=True)
 SHOPEE_GIFS_DIR.mkdir(exist_ok=True)
 OPTION_DIR.mkdir(exist_ok=True)
+TEMPLATE1_DIR.mkdir(exist_ok=True)
+TEMPLATE2_DIR.mkdir(exist_ok=True)
+
+
+def find_template_file(template_dir: Path, base_name: str) -> Optional[Path]:
+    if not template_dir.exists():
+        return None
+    for f in template_dir.iterdir():
+        if f.is_file() and f.stem.lower() == base_name.lower():
+            return f
+    return None
+
 
 
 # ── Helper ─────────────────────────────────────────────────
@@ -102,10 +115,15 @@ async def get_shopee_gif(filename: str):
 
 @app.get("/template-asset/{template_name}/{filename}")
 async def get_template_asset(template_name: str, filename: str):
-    file_path = OPTION_DIR / template_name / filename
+    tpl_dir = OPTION_DIR / template_name
+    file_path = tpl_dir / filename
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Template asset not found")
-    media_type = "audio/mpeg" if filename.endswith(".mp3") else "image/png"
+        found = next((f for f in tpl_dir.glob("*") if f.name.lower() == filename.lower()), None)
+        if found:
+            file_path = found
+        else:
+            raise HTTPException(status_code=404, detail="Template asset not found")
+    media_type = "audio/mpeg" if file_path.suffix.lower() in [".mp3", ".wav", ".m4a", ".aac"] else "image/png"
     return FileResponse(file_path, media_type=media_type)
 
 
@@ -169,10 +187,12 @@ async def process_video(
         if preset_sticker.exists():
             logo_path = preset_sticker
             is_temp_logo = False
-    elif template == "template1":
-        tpl_logo = TEMPLATE1_DIR / "Logo.png"
-        if tpl_logo.exists():
-            anim_type = logo_anim if logo_anim is not None else "pulse"
+    elif template in ("template1", "template2"):
+        tpl_dir = TEMPLATE2_DIR if template == "template2" else TEMPLATE1_DIR
+        tpl_logo = find_template_file(tpl_dir, "logo")
+        if tpl_logo and tpl_logo.exists():
+            default_anim = "bounce" if template == "template2" else "pulse"
+            anim_type = logo_anim if logo_anim is not None else default_anim
             if anim_type and anim_type != "none":
                 anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
                 logo_path = animate_static_logo(tpl_logo, anim_type, anim_logo_path)
@@ -194,9 +214,10 @@ async def process_video(
         if preset_file.exists():
             bgm_path = preset_file
             is_temp_bgm = False
-    elif template == "template1":
-        tpl_music = TEMPLATE1_DIR / "music.mp3"
-        if tpl_music.exists():
+    elif template in ("template1", "template2"):
+        tpl_dir = TEMPLATE2_DIR if template == "template2" else TEMPLATE1_DIR
+        tpl_music = find_template_file(tpl_dir, "music")
+        if tpl_music and tpl_music.exists():
             bgm_path = tpl_music
             is_temp_bgm = False
 
@@ -264,13 +285,24 @@ async def process_video(
     logo_width = f"iw*{logo_scale}/100"
 
     # Base scale & pad to target resolution (TikTok 9:16 or selected)
-    base_v_filters = [
+    base_v_filters = []
+    if template == "template2":
+        # Micro-zoom 2%: crop 98% center before scaling (làm lệch toàn bộ pixel matrix và pHash so với Mẫu 1)
+        base_v_filters.append("crop=iw*0.98:ih*0.98")
+
+    base_v_filters.extend([
         f"scale={res_w}:{res_h}:force_original_aspect_ratio=decrease",
         f"pad={res_w}:{res_h}:(ow-iw)/2:(oh-ih)/2:color=black",
-    ]
+    ])
+
     if color_boost:
-        # Micro color grading & contrast boost (phá pHash và histogram matching)
-        base_v_filters.append("eq=contrast=1.03:brightness=0.01:saturation=1.04")
+        if template == "template2":
+            # Tone Mẫu 2: Ấm áp, nịnh mắt, màu tươi đậm hơn + nét chi tiết (phá vỡ hoàn toàn histogram so với Mẫu 1)
+            base_v_filters.append("eq=contrast=1.06:brightness=0.02:saturation=1.09,unsharp=3:3:0.8:3:3:0.0")
+        else:
+            # Tone Mẫu 1: Tự nhiên, sáng nhẹ
+            base_v_filters.append("eq=contrast=1.03:brightness=0.01:saturation=1.04")
+
     if speed_factor and abs(speed_factor - 1.0) >= 0.005:
         # Micro speed adjustment (phá vỡ timeline và frame timestamps)
         base_v_filters.append(f"setpts=PTS/{speed_factor}")
@@ -339,11 +371,13 @@ async def process_video(
     else:
         eff_bgm_vol = round(float(bgm_volume), 2)
 
+    audio_pitch_rate = "1.028" if template == "template2" else "1.015"
+
     if bgm_input_idx is not None:
         if has_video_audio and video_volume > 0.001:
             orig_audio_filters = []
             if bypass_audio:
-                orig_audio_filters.append("asetrate=44100*1.015,aresample=44100")
+                orig_audio_filters.append(f"asetrate=44100*{audio_pitch_rate},aresample=44100")
             if speed_factor and abs(speed_factor - 1.0) >= 0.005:
                 orig_audio_filters.append(f"atempo={speed_factor}")
             if video_volume != 1.0:
@@ -366,7 +400,7 @@ async def process_video(
         if has_video_audio and video_volume > 0.001:
             orig_audio_filters = []
             if bypass_audio:
-                orig_audio_filters.append("asetrate=44100*1.015,aresample=44100")
+                orig_audio_filters.append(f"asetrate=44100*{audio_pitch_rate},aresample=44100")
             if speed_factor and abs(speed_factor - 1.0) >= 0.005:
                 orig_audio_filters.append(f"atempo={speed_factor}")
             if video_volume != 1.0:
