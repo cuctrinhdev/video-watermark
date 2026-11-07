@@ -40,6 +40,7 @@ SHOPEE_GIFS_DIR = Path("shopee_gifs")
 OPTION_DIR = Path("option")
 TEMPLATE1_DIR = OPTION_DIR / "template1"
 TEMPLATE2_DIR = OPTION_DIR / "template2"
+TEMPLATE3_DIR = OPTION_DIR / "template3"
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 BGM_DIR.mkdir(exist_ok=True)
@@ -47,6 +48,7 @@ SHOPEE_GIFS_DIR.mkdir(exist_ok=True)
 OPTION_DIR.mkdir(exist_ok=True)
 TEMPLATE1_DIR.mkdir(exist_ok=True)
 TEMPLATE2_DIR.mkdir(exist_ok=True)
+TEMPLATE3_DIR.mkdir(exist_ok=True)
 
 
 def find_template_file(template_dir: Path, base_name: str) -> Optional[Path]:
@@ -123,7 +125,12 @@ async def get_template_asset(template_name: str, filename: str):
             file_path = found
         else:
             raise HTTPException(status_code=404, detail="Template asset not found")
-    media_type = "audio/mpeg" if file_path.suffix.lower() in [".mp3", ".wav", ".m4a", ".aac"] else "image/png"
+    if file_path.suffix.lower() == ".gif":
+        media_type = "image/gif"
+    elif file_path.suffix.lower() in [".mp3", ".wav", ".m4a", ".aac"]:
+        media_type = "audio/mpeg"
+    else:
+        media_type = "image/png"
     return FileResponse(file_path, media_type=media_type)
 
 
@@ -187,19 +194,28 @@ async def process_video(
         if preset_sticker.exists():
             logo_path = preset_sticker
             is_temp_logo = False
-    elif template in ("template1", "template2"):
-        tpl_dir = TEMPLATE2_DIR if template == "template2" else TEMPLATE1_DIR
+    elif template in ("template1", "template2", "template3"):
+        if template == "template3":
+            tpl_dir = TEMPLATE3_DIR
+        elif template == "template2":
+            tpl_dir = TEMPLATE2_DIR
+        else:
+            tpl_dir = TEMPLATE1_DIR
         tpl_logo = find_template_file(tpl_dir, "logo")
         if tpl_logo and tpl_logo.exists():
-            default_anim = "bounce" if template == "template2" else "pulse"
-            anim_type = logo_anim if logo_anim is not None else default_anim
-            if anim_type and anim_type != "none":
-                anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
-                logo_path = animate_static_logo(tpl_logo, anim_type, anim_logo_path)
-                is_temp_logo = True
-            else:
+            if tpl_logo.suffix.lower() == ".gif":
                 logo_path = tpl_logo
                 is_temp_logo = False
+            else:
+                default_anim = "bounce" if template == "template2" else ("shimmer" if template == "template3" else "pulse")
+                anim_type = logo_anim if logo_anim is not None else default_anim
+                if anim_type and anim_type != "none":
+                    anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
+                    logo_path = animate_static_logo(tpl_logo, anim_type, anim_logo_path)
+                    is_temp_logo = True
+                else:
+                    logo_path = tpl_logo
+                    is_temp_logo = False
 
     bgm_path = None
     is_temp_bgm = False
@@ -214,8 +230,13 @@ async def process_video(
         if preset_file.exists():
             bgm_path = preset_file
             is_temp_bgm = False
-    elif template in ("template1", "template2"):
-        tpl_dir = TEMPLATE2_DIR if template == "template2" else TEMPLATE1_DIR
+    elif template in ("template1", "template2", "template3"):
+        if template == "template3":
+            tpl_dir = TEMPLATE3_DIR
+        elif template == "template2":
+            tpl_dir = TEMPLATE2_DIR
+        else:
+            tpl_dir = TEMPLATE1_DIR
         tpl_music = find_template_file(tpl_dir, "music")
         if tpl_music and tpl_music.exists():
             bgm_path = tpl_music
@@ -286,7 +307,10 @@ async def process_video(
 
     # Base scale & pad to target resolution (TikTok 9:16 or selected)
     base_v_filters = []
-    if template == "template2":
+    if template == "template3":
+        # Micro-zoom 3% + Subtle temporal noise: Phá vỡ triệt để pHash và perceptual fingerprint
+        base_v_filters.append("crop=iw*0.97:ih*0.97,noise=alls=3:allf=t")
+    elif template == "template2":
         # Micro-zoom 2%: crop 98% center before scaling (làm lệch toàn bộ pixel matrix và pHash so với Mẫu 1)
         base_v_filters.append("crop=iw*0.98:ih*0.98")
 
@@ -296,7 +320,10 @@ async def process_video(
     ])
 
     if color_boost:
-        if template == "template2":
+        if template == "template3":
+            # Tone Mẫu 3: Sắc nét + Dịch nhẹ Hue 1.5° + Gamma phá vỡ Color Histogram bot quét
+            base_v_filters.append("eq=contrast=1.05:brightness=0.015:saturation=1.08:gamma=0.98,hue=h=1.5,unsharp=3:3:0.7:3:3:0.0")
+        elif template == "template2":
             # Tone Mẫu 2: Ấm áp, nịnh mắt, màu tươi đậm hơn + nét chi tiết (phá vỡ hoàn toàn histogram so với Mẫu 1)
             base_v_filters.append("eq=contrast=1.06:brightness=0.02:saturation=1.09,unsharp=3:3:0.8:3:3:0.0")
         else:
@@ -371,13 +398,21 @@ async def process_video(
     else:
         eff_bgm_vol = round(float(bgm_volume), 2)
 
-    audio_pitch_rate = "1.028" if template == "template2" else "1.015"
+    if template == "template3":
+        audio_pitch_rate = "1.032"
+    elif template == "template2":
+        audio_pitch_rate = "1.028"
+    else:
+        audio_pitch_rate = "1.015"
 
     if bgm_input_idx is not None:
         if has_video_audio and video_volume > 0.001:
             orig_audio_filters = []
             if bypass_audio:
                 orig_audio_filters.append(f"asetrate=44100*{audio_pitch_rate},aresample=44100")
+                if template == "template3":
+                    # EQ shift âm phổ chống nhận diện âm thanh Shazam/TikTok
+                    orig_audio_filters.append("equalizer=f=120:t=q:w=1.2:g=1.2,equalizer=f=3500:t=q:w=1.0:g=-1")
             if speed_factor and abs(speed_factor - 1.0) >= 0.005:
                 orig_audio_filters.append(f"atempo={speed_factor}")
             if video_volume != 1.0:
@@ -401,6 +436,8 @@ async def process_video(
             orig_audio_filters = []
             if bypass_audio:
                 orig_audio_filters.append(f"asetrate=44100*{audio_pitch_rate},aresample=44100")
+                if template == "template3":
+                    orig_audio_filters.append("equalizer=f=120:t=q:w=1.2:g=1.2,equalizer=f=3500:t=q:w=1.0:g=-1")
             if speed_factor and abs(speed_factor - 1.0) >= 0.005:
                 orig_audio_filters.append(f"atempo={speed_factor}")
             if video_volume != 1.0:
@@ -424,9 +461,12 @@ async def process_video(
             "-flags:v", "+bitexact",
             "-flags:a", "+bitexact",
         ])
+    crf_val = "21" if template == "template3" else "22"
     cmd.extend([
-        "-c:v", "libx264", "-preset", "fast", "-crf", "22",
+        "-c:v", "libx264", "-preset", "fast", "-crf", crf_val,
     ])
+    if template == "template3":
+        cmd.extend(["-g", "48"])
     if audio_map:
         cmd.extend(["-c:a", "aac", "-b:a", "192k"])
     cmd.extend(["-shortest", str(output_path)])
