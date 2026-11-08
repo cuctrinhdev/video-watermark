@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 import aiofiles
+from PIL import Image
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
@@ -142,6 +143,8 @@ async def process_video(
     logo_anim: str = Form("pulse"),
     shopee_sticker: Optional[str] = Form("none"),
     template: Optional[str] = Form("template1"),
+    bg_top_file: Optional[UploadFile] = File(None),
+    bg_bottom_file: Optional[UploadFile] = File(None),
     bgm_file: Optional[UploadFile] = File(None),
     bgm_preset: Optional[str] = Form("none"),
     video_volume: float = Form(1.0),
@@ -194,28 +197,19 @@ async def process_video(
         if preset_sticker.exists():
             logo_path = preset_sticker
             is_temp_logo = False
-    elif template in ("template1", "template2", "template3"):
-        if template == "template3":
-            tpl_dir = TEMPLATE3_DIR
-        elif template == "template2":
-            tpl_dir = TEMPLATE2_DIR
-        else:
-            tpl_dir = TEMPLATE1_DIR
+    elif template in ("template1", "template2"):
+        tpl_dir = TEMPLATE2_DIR if template == "template2" else TEMPLATE1_DIR
         tpl_logo = find_template_file(tpl_dir, "logo")
         if tpl_logo and tpl_logo.exists():
-            if tpl_logo.suffix.lower() == ".gif":
+            default_anim = "bounce" if template == "template2" else "pulse"
+            anim_type = logo_anim if logo_anim is not None else default_anim
+            if anim_type and anim_type != "none":
+                anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
+                logo_path = animate_static_logo(tpl_logo, anim_type, anim_logo_path)
+                is_temp_logo = True
+            else:
                 logo_path = tpl_logo
                 is_temp_logo = False
-            else:
-                default_anim = "bounce" if template == "template2" else ("shimmer" if template == "template3" else "pulse")
-                anim_type = logo_anim if logo_anim is not None else default_anim
-                if anim_type and anim_type != "none":
-                    anim_logo_path = UPLOAD_DIR / f"{job_id}_anim_logo.gif"
-                    logo_path = animate_static_logo(tpl_logo, anim_type, anim_logo_path)
-                    is_temp_logo = True
-                else:
-                    logo_path = tpl_logo
-                    is_temp_logo = False
 
     bgm_path = None
     is_temp_bgm = False
@@ -245,6 +239,37 @@ async def process_video(
     res_w_str, res_h_str = resolution.split(":")
     res_w, res_h = int(res_w_str), int(res_h_str)
 
+    # 2 Backgrounds (Top & Bottom) specifically for Option 3
+    bg_top_path = None
+    is_temp_bg_top = False
+    bg_bottom_path = None
+    is_temp_bg_bottom = False
+
+    if template == "template3":
+        if bg_top_file and bg_top_file.filename and len(bg_top_file.filename.strip()) > 0:
+            top_ext = Path(bg_top_file.filename).suffix or ".png"
+            bg_top_path = UPLOAD_DIR / f"{job_id}_bg_top{top_ext}"
+            async with aiofiles.open(bg_top_path, "wb") as f:
+                await f.write(await bg_top_file.read())
+            is_temp_bg_top = True
+        else:
+            found_top = find_template_file(TEMPLATE3_DIR, "bg_top") or find_template_file(TEMPLATE3_DIR, "top")
+            if found_top and found_top.exists():
+                bg_top_path = found_top
+                is_temp_bg_top = False
+
+        if bg_bottom_file and bg_bottom_file.filename and len(bg_bottom_file.filename.strip()) > 0:
+            bot_ext = Path(bg_bottom_file.filename).suffix or ".png"
+            bg_bottom_path = UPLOAD_DIR / f"{job_id}_bg_bottom{bot_ext}"
+            async with aiofiles.open(bg_bottom_path, "wb") as f:
+                await f.write(await bg_bottom_file.read())
+            is_temp_bg_bottom = True
+        else:
+            found_bot = find_template_file(TEMPLATE3_DIR, "bg_bottom") or find_template_file(TEMPLATE3_DIR, "bottom")
+            if found_bot and found_bot.exists():
+                bg_bottom_path = found_bot
+                is_temp_bg_bottom = False
+
     # 1. Generate text overlay if requested
     text_overlay_path = None
     if use_text and watermark_text.strip():
@@ -265,6 +290,8 @@ async def process_video(
     input_idx = 1
     text_input_idx = None
     logo_input_idx = None
+    bg_top_input_idx = None
+    bg_bottom_input_idx = None
     bgm_input_idx = None
 
     if text_overlay_path and text_overlay_path.exists():
@@ -278,6 +305,22 @@ async def process_video(
         else:
             cmd.extend(["-i", str(logo_path)])
         logo_input_idx = input_idx
+        input_idx += 1
+
+    if bg_top_path and bg_top_path.exists():
+        if bg_top_path.suffix.lower() == ".gif":
+            cmd.extend(["-ignore_loop", "0", "-i", str(bg_top_path)])
+        else:
+            cmd.extend(["-i", str(bg_top_path)])
+        bg_top_input_idx = input_idx
+        input_idx += 1
+
+    if bg_bottom_path and bg_bottom_path.exists():
+        if bg_bottom_path.suffix.lower() == ".gif":
+            cmd.extend(["-ignore_loop", "0", "-i", str(bg_bottom_path)])
+        else:
+            cmd.extend(["-i", str(bg_bottom_path)])
+        bg_bottom_input_idx = input_idx
         input_idx += 1
 
     if bgm_path and bgm_path.exists():
@@ -306,36 +349,58 @@ async def process_video(
     logo_width = f"iw*{logo_scale}/100"
 
     # Base scale & pad to target resolution (TikTok 9:16 or selected)
-    base_v_filters = []
     if template == "template3":
-        # Micro-zoom 3% + Subtle temporal noise: Phá vỡ triệt để pHash và perceptual fingerprint
-        base_v_filters.append("crop=iw*0.97:ih*0.97,noise=alls=3:allf=t")
-    elif template == "template2":
-        # Micro-zoom 2%: crop 98% center before scaling (làm lệch toàn bộ pixel matrix và pHash so với Mẫu 1)
-        base_v_filters.append("crop=iw*0.98:ih*0.98")
+        # Option 3: Giữ nguyên tỷ lệ video tự nhiên + Đè thanh hướng dẫn mua hàng đơn giản ở dưới
+        proc_filters = ["crop=iw*0.97:ih*0.97", "noise=alls=3:allf=t"]
+        if color_boost:
+            proc_filters.append("eq=contrast=1.05:brightness=0.015:saturation=1.08:gamma=0.98,hue=h=1.5,unsharp=3:3:0.7:3:3:0.0")
+        if speed_factor and abs(speed_factor - 1.0) >= 0.005:
+            proc_filters.append(f"setpts=PTS/{speed_factor}")
 
-    base_v_filters.extend([
-        f"scale={res_w}:{res_h}:force_original_aspect_ratio=decrease",
-        f"pad={res_w}:{res_h}:(ow-iw)/2:(oh-ih)/2:color=black",
-    ])
+        proc_filters.extend([
+            f"scale={res_w}:{res_h}:force_original_aspect_ratio=decrease",
+            f"pad={res_w}:{res_h}:(ow-iw)/2:(oh-ih)/2:color=black",
+        ])
 
-    if color_boost:
-        if template == "template3":
-            # Tone Mẫu 3: Sắc nét + Dịch nhẹ Hue 1.5° + Gamma phá vỡ Color Histogram bot quét
-            base_v_filters.append("eq=contrast=1.05:brightness=0.015:saturation=1.08:gamma=0.98,hue=h=1.5,unsharp=3:3:0.7:3:3:0.0")
-        elif template == "template2":
-            # Tone Mẫu 2: Ấm áp, nịnh mắt, màu tươi đậm hơn + nét chi tiết (phá vỡ hoàn toàn histogram so với Mẫu 1)
-            base_v_filters.append("eq=contrast=1.06:brightness=0.02:saturation=1.09,unsharp=3:3:0.8:3:3:0.0")
-        else:
-            # Tone Mẫu 1: Tự nhiên, sáng nhẹ
-            base_v_filters.append("eq=contrast=1.03:brightness=0.01:saturation=1.04")
+        filters = [f"[0:v]{','.join(proc_filters)}[bg]"]
+        curr_bg = "[bg]"
 
-    if speed_factor and abs(speed_factor - 1.0) >= 0.005:
-        # Micro speed adjustment (phá vỡ timeline và frame timestamps)
-        base_v_filters.append(f"setpts=PTS/{speed_factor}")
+        # Overlay thanh hướng dẫn mua hàng Shopee ở mép dưới
+        if bg_bottom_input_idx is not None:
+            filters.append(f"[{bg_bottom_input_idx}:v]scale={res_w}:-1,format=rgba[bg_bottom_img]")
+            filters.append(f"{curr_bg}[bg_bottom_img]overlay=(W-w)/2:H-h[with_bottom_bg]")
+            curr_bg = "[with_bottom_bg]"
 
-    filters = [f"[0:v]{','.join(base_v_filters)}[bg]"]
-    curr_bg = "[bg]"
+        # Overlay thanh top nếu có
+        if bg_top_input_idx is not None:
+            filters.append(f"[{bg_top_input_idx}:v]scale={res_w}:-1[bg_top_img]")
+            filters.append(f"{curr_bg}[bg_top_img]overlay=(W-w)/2:0[with_top_bg]")
+            curr_bg = "[with_top_bg]"
+    else:
+        base_v_filters = []
+        if template == "template2":
+            # Micro-zoom 2%: crop 98% center before scaling (làm lệch toàn bộ pixel matrix và pHash so với Mẫu 1)
+            base_v_filters.append("crop=iw*0.98:ih*0.98")
+
+        base_v_filters.extend([
+            f"scale={res_w}:{res_h}:force_original_aspect_ratio=decrease",
+            f"pad={res_w}:{res_h}:(ow-iw)/2:(oh-ih)/2:color=black",
+        ])
+
+        if color_boost:
+            if template == "template2":
+                # Tone Mẫu 2: Ấm áp, nịnh mắt, màu tươi đậm hơn + nét chi tiết (phá vỡ hoàn toàn histogram so với Mẫu 1)
+                base_v_filters.append("eq=contrast=1.06:brightness=0.02:saturation=1.09,unsharp=3:3:0.8:3:3:0.0")
+            else:
+                # Tone Mẫu 1: Tự nhiên, sáng nhẹ
+                base_v_filters.append("eq=contrast=1.03:brightness=0.01:saturation=1.04")
+
+        if speed_factor and abs(speed_factor - 1.0) >= 0.005:
+            # Micro speed adjustment (phá vỡ timeline và frame timestamps)
+            base_v_filters.append(f"setpts=PTS/{speed_factor}")
+
+        filters = [f"[0:v]{','.join(base_v_filters)}[bg]"]
+        curr_bg = "[bg]"
 
     # Layer Text overlay
     if text_input_idx is not None:
@@ -358,11 +423,23 @@ async def process_video(
             x_expr = f"{pad_x}+(W-w-{pad_x*2})*(0.5-0.5*cos(2*PI*t/{tx}))"
             y_expr = f"{pad_y_top}+(H-h-{pad_y_top+pad_y_bottom})*(0.5-0.5*cos(2*PI*t/{ty}))"
             text_coord = f"x='{x_expr}':y='{y_expr}'"
-        elif text_layout == "ticker-scroll":
-            # Running marquee from right edge to left edge
+        elif text_layout in ("ticker-scroll", "ticker-top"):
+            # Running marquee from right edge to left edge (Top safe zone)
             speed_px = {"fast": 360, "slow": 140}.get(text_anim_speed, 220)
             x_expr = f"W-mod(t*{speed_px},W+w)"
-            y_expr = f"H-h-{pad_y_bottom}"
+            y_expr = "120"
+            text_coord = f"x='{x_expr}':y='{y_expr}'"
+        elif text_layout == "wave-scroll":
+            # Running marquee with gentle vertical sine wave
+            speed_px = {"fast": 360, "slow": 140}.get(text_anim_speed, 220)
+            x_expr = f"W-mod(t*{speed_px},W+w)"
+            y_expr = "130+28*sin(2*PI*t/3.2)"
+            text_coord = f"x='{x_expr}':y='{y_expr}'"
+        elif text_layout == "ticker-bottom-run":
+            # Running marquee along bottom edge (above footer)
+            speed_px = {"fast": 360, "slow": 140}.get(text_anim_speed, 220)
+            x_expr = f"W-mod(t*{speed_px},W+w)"
+            y_expr = f"H-h-{pad_y_bottom+15}"
             text_coord = f"x='{x_expr}':y='{y_expr}'"
         else:
             text_coord = "0:0"
@@ -477,6 +554,10 @@ async def process_video(
         video_path.unlink(missing_ok=True)
         if logo_path and is_temp_logo:
             logo_path.unlink(missing_ok=True)
+        if bg_top_path and is_temp_bg_top:
+            bg_top_path.unlink(missing_ok=True)
+        if bg_bottom_path and is_temp_bg_bottom:
+            bg_bottom_path.unlink(missing_ok=True)
         if text_overlay_path:
             text_overlay_path.unlink(missing_ok=True)
         if bgm_path and is_temp_bgm:

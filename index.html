@@ -601,24 +601,31 @@
       <div class="template-body" id="tpl-template3-body" style="display:none;">
         <div class="template-pills">
           <div class="tpl-pill">
-            <span class="pill-icon">🖼️</span>
+            <span class="pill-icon">📱</span>
             <div>
-              <div class="pill-label">Logo mặc định Mẫu 3</div>
-              <div class="pill-val">Logo.gif (75% Góc dưới P, GIF động nguyên bản ✨)</div>
+              <div class="pill-label">Tỷ lệ video gốc</div>
+              <div class="pill-val">Giữ nguyên 100% tỷ lệ chuẩn (không co méo)</div>
             </div>
           </div>
           <div class="tpl-pill">
-            <span class="pill-icon">🎵</span>
+            <span class="pill-icon">🛒</span>
             <div>
-              <div class="pill-label">Nhạc nền tự động</div>
-              <div class="pill-val">music.mp3 (35% Hòa âm + Audio EQ né Shazam/Bot)</div>
+              <div class="pill-label">Thanh hướng dẫn Shopee dưới</div>
+              <div class="pill-val">Mua Ngay ➔ Chọn Voucher ➔ Đặt Hàng</div>
             </div>
           </div>
           <div class="tpl-pill">
             <span class="pill-icon">✍️</span>
             <div>
               <div class="pill-label">Chữ Watermark</div>
-              <div class="pill-val">"Chốt Đơn Liền Tay" (Lượn sóng 42px)</div>
+              <div class="pill-val">"Chốt Đơn Có Duyên" (Chạy khắp nơi, Chậm rãi 42px)</div>
+            </div>
+          </div>
+          <div class="tpl-pill">
+            <span class="pill-icon">🎵</span>
+            <div>
+              <div class="pill-label">Nhạc nền tự động</div>
+              <div class="pill-val">Lo-fi Chill Beat (20% Hòa âm + Audio EQ né Shazam/Bot)</div>
             </div>
           </div>
           <div class="tpl-pill">
@@ -630,7 +637,7 @@
           </div>
         </div>
         <div class="template-note" style="border-left-color: var(--accent2); background: rgba(78, 205, 196, 0.08); color: var(--accent2);">
-          🎯 <strong>Mẫu cấu hình Option 3 (Siêu Né Reup Đỉnh Cao)</strong> — Tự động ghép Logo Mẫu 3 (Logo.gif động), Nhạc nền 35%, kết hợp <strong>Tiêm hạt Noise phá pHash + Lệch hệ màu Hue 1.5° + Zoom 3% + Tốc độ 1.03x + Audio Equalizer + Khoảng cách Keyframe GOP 48</strong> để chống AI quét trùng lặp tuyệt đối!
+          🎯 <strong>Mẫu cấu hình Option 3 (Chuẩn Shopee Video)</strong> — Giữ <strong>100% tỷ lệ video tự nhiên</strong>, chèn <strong>thanh 3 bước mua hàng Shopee Video (Mua Ngay ➔ Chọn Voucher ➔ Đặt Hàng)</strong> ở mép dưới, chữ <strong>"Chốt Đơn Có Duyên" chạy khắp nơi chậm rãi êm dịu</strong>, kết hợp trọn bộ <strong>Tiêm hạt Noise phá pHash + Lệch Hue 1.5° + Zoom 3% + Tốc độ 1.03x + Audio Equalizer</strong>!
         </div>
       </div>
     </div>
@@ -745,9 +752,11 @@
           <div>
             <label class="field-label">Kiểu hiển thị & Animation chữ</label>
             <select id="wm-text-layout" onchange="toggleAnimSpeedControl()">
-              <option value="smooth-glide" selected>🌊 Animation lượn sóng mượt mà khắp video</option>
-              <option value="bounce">🏓 Animation nảy khắp nơi (Góc trái ➔ góc phải ➔ giữa...)</option>
-              <option value="ticker-scroll">🚀 Animation chạy ngang qua màn hình (Marquee)</option>
+              <option value="smooth-glide" selected>🌊 Animation lượn sóng mượt mà khắp video (Mẫu 1)</option>
+              <option value="bounce">🏓 Animation nảy khắp nơi 4 góc (Mẫu 2)</option>
+              <option value="ticker-scroll">🚀 Animation chạy chữ ngang qua màn hình (Mẫu 3 - Marquee)</option>
+              <option value="wave-scroll">💫 Animation chạy chữ lướt sóng nhấp nhô (Wave Drift)</option>
+              <option value="ticker-bottom-run">📱 Animation chạy chữ ngang mép dưới (Bottom Marquee)</option>
               <option value="border">🔲 Chạy viền xung quanh 4 cạnh video (Tĩnh)</option>
               <option value="diagonal">📐 Lặp chéo khắp video (Grid chống trộm AI)</option>
               <option value="top-bottom">⬆️⬇️ Dải chữ Trên & Dưới (Tĩnh)</option>
@@ -1381,21 +1390,21 @@ function applyTemplate(name) {
     if (btnTpl3) btnTpl3.classList.add('active');
     if (btnCustom) btnCustom.classList.remove('active');
     if (tplBanner) tplBanner.classList.add('active-preset');
-    if (tplBadge) tplBadge.innerHTML = '<span>🛡️</span> MẪU CẤU HÌNH TỰ ĐỘNG SỐ 3 (SIÊU NÉ REUP)';
+    if (tplBadge) tplBadge.innerHTML = '<span>🛒</span> MẪU CẤU HÌNH TỰ ĐỘNG SỐ 3 (CHUẨN SHOPEE VIDEO)';
     if (tpl1Body) tpl1Body.style.display = 'none';
     if (tpl2Body) tpl2Body.style.display = 'none';
     if (tpl3Body) tpl3Body.style.display = 'block';
 
-    if (tplLogoInd) tplLogoInd.style.display = 'flex';
-    if (logoImg) logoImg.src = '/template-asset/template3/Logo.gif';
-    if (logoTitle) logoTitle.textContent = '🛡️ Đang dùng Logo Mẫu 3 (Logo.gif)';
-    if (logoBadge) logoBadge.textContent = 'GIF động chuẩn';
-    if (logoDesc) logoDesc.innerHTML = 'Kích thước 75%, góc dưới phải (0px), <strong>Ảnh động GIF nguyên bản</strong> sắc nét và liên tục.';
+    // Tắt logo mặc định cho Mẫu 3 để màn hình sạch sẽ, không che hình ảnh
+    if (tplLogoInd) tplLogoInd.style.display = 'none';
+    const stickerSel = document.getElementById('wm-shopee-sticker');
+    if (stickerSel) stickerSel.value = 'none';
+    if (typeof onShopeeStickerChanged === 'function') onShopeeStickerChanged();
 
     if (tplAudioInd) tplAudioInd.style.display = 'flex';
-    if (audioTitle) audioTitle.textContent = '🛡️ Đang kích hoạt Nhạc nền Mẫu 3';
-    if (audioBadge) audioBadge.textContent = 'music.mp3';
-    if (audioDesc) audioDesc.textContent = 'Tự động hòa âm 35% + EQ âm phổ chống bot quét bản quyền âm thanh.';
+    if (audioTitle) audioTitle.textContent = '🎧 Đang kích hoạt Nhạc nền Mẫu 3 (Lo-fi Chill Beat)';
+    if (audioBadge) audioBadge.textContent = 'lofi_chill.mp3';
+    if (audioDesc) audioDesc.textContent = 'Giai điệu Lo-fi Chill ấm áp, êm dịu giữ chân người xem + EQ âm phổ né bot (Âm lượng 20%).';
     if (audioPlayer) {
       audioPlayer.pause();
       audioPlayer.src = '/template-asset/template3/music.mp3';
@@ -1406,47 +1415,19 @@ function applyTemplate(name) {
     const resSel = document.getElementById('wm-resolution');
     if (resSel) resSel.value = '1080:1920';
 
-    // Logo settings: scale 75%, opacity 100%, margin 0px, bottom-right
-    const logoScale = document.getElementById('wm-logo-scale');
-    if (logoScale) {
-      logoScale.value = 75;
-      document.getElementById('wm-scale-val').textContent = '75%';
-    }
-
-    const opacity = document.getElementById('wm-opacity');
-    if (opacity) {
-      opacity.value = 100;
-      document.getElementById('wm-opacity-val').textContent = '100%';
-    }
-
-    const margin = document.getElementById('wm-margin');
-    if (margin) {
-      margin.value = 0;
-      document.getElementById('wm-margin-val').textContent = '0px';
-    }
-
-    document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
-    const brBtn = document.querySelector('.pos-btn[data-pos="bottom-right"]');
-    if (brBtn) brBtn.classList.add('active');
-    wmPos = 'bottom-right';
-
-    // Logo Animation: none (since Logo.gif is already an animated GIF)
-    const logoAnimSel = document.getElementById('wm-logo-anim');
-    if (logoAnimSel) logoAnimSel.value = 'none';
-
-    // Text watermark settings: ON, "Chốt Đơn Liền Tay", smooth-glide, normal, white, 42px, 50%
+    // Text watermark: Bật chữ chạy "Chốt Đơn Có Duyên" độc quyền cho Mẫu 3
     const useText = document.getElementById('wm-use-text');
     if (useText) useText.checked = true;
 
     const textContent = document.getElementById('wm-text-content');
-    if (textContent) textContent.value = 'Chốt Đơn Liền Tay';
+    if (textContent) textContent.value = 'Chốt Đơn Có Duyên';
 
     const textLayout = document.getElementById('wm-text-layout');
-    if (textLayout) textLayout.value = 'smooth-glide';
+    if (textLayout) textLayout.value = 'bounce';
     toggleAnimSpeedControl();
 
     const animSpeed = document.getElementById('wm-anim-speed');
-    if (animSpeed) animSpeed.value = 'normal';
+    if (animSpeed) animSpeed.value = 'slow';
 
     const textColor = document.getElementById('wm-text-color');
     if (textColor) textColor.value = 'white';
@@ -1484,8 +1465,8 @@ function applyTemplate(name) {
 
     const bgmVol = document.getElementById('wm-bgm-volume');
     if (bgmVol) {
-      bgmVol.value = 35;
-      updateBgmVolumeLabel(35);
+      bgmVol.value = 20;
+      updateBgmVolumeLabel(20);
     }
   } else {
     if (btnTpl1) btnTpl1.classList.remove('active');
@@ -1751,7 +1732,7 @@ function updateBgmVolumeLabel(val) {
 
 function toggleAnimSpeedControl() {
   const layout = document.getElementById('wm-text-layout').value;
-  const isAnim = ['bounce', 'smooth-glide', 'ticker-scroll'].includes(layout);
+  const isAnim = ['bounce', 'smooth-glide', 'ticker-scroll', 'wave-scroll', 'ticker-bottom-run', 'ticker-top'].includes(layout);
   const wrap = document.getElementById('wm-anim-speed-wrap');
   if (wrap) wrap.style.display = isAnim ? 'block' : 'none';
 }

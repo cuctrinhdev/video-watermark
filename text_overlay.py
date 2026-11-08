@@ -65,7 +65,7 @@ def generate_text_overlay(
         draw_kwargs["stroke_fill"] = stroke_col
 
     # Animated layouts: generate pure text (transparent background, no extra icons)
-    if layout in ("bounce", "smooth-glide", "ticker-scroll"):
+    if layout in ("bounce", "smooth-glide", "ticker-scroll", "wave-scroll", "ticker-top", "ticker-bottom-run"):
         text_str = clean_text
         bbox = font.getbbox(text_str)
         bw = bbox[2] - bbox[0]
